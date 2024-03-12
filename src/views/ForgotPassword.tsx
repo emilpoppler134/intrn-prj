@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { API_ADDRESS } from '../config';
 
 export default function ForgotPassword() {
   return (
@@ -17,6 +18,7 @@ export default function ForgotPassword() {
           <img
             className="mx-auto h-16 w-auto"
             alt="Logo"
+            src={`${API_ADDRESS}/images/logo.png`}
           />
           
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
