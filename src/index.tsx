@@ -1,7 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider } from "react-router-dom";
-import router from './navigation';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import Dashboard from './views/Dashboard';
+import ForgotPassword from "./views/ForgotPassword";
+import Login from './views/Login';
+
 import './assets/index.css';
 import './assets/main.css';
 
@@ -10,5 +14,11 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <RouterProvider router={router} />
+  <BrowserRouter>
+		<Routes>
+			<Route path="/" element={<Dashboard />} />
+			<Route path="/login" element={<Login />} />
+			<Route path="/forgot-password" element={<ForgotPassword />} />
+		</Routes>
+	</BrowserRouter>
 );
