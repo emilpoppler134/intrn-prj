@@ -1,41 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_ADDRESS } from '../config';
+import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
 
 import TextInput from '../components/TextInput';
 import SubmitButton from '../components/SubmitButton';
 import ErrorAlert from '../components/ErrorAlert';
 
-enum ResponseStatus {
-  OK = "OK",
-  ERROR = "ERROR"
-}
-
-enum ErrorType {
-  INVALID_PARAMS = "INVALID_PARAMS",
-  DATABASE_ERROR = "DATABASE_ERROR",
-  HASH_PARSING = "HASH_PARSING",
-  USER_EXISTS = "USER_EXISTS",
-  NO_RESULT = "NO_RESULT",
-  MAIL_ERROR = "MAIL_ERROR",
-}
-
-type LoginResponse = {
-  status: ResponseStatus;
-  data?: AccessToken;
-  error?: ErrorType;
-} | null;
-
-type AccessToken = {
-  accessToken: string;
-}
-
-type ErrorMessage = string | null;
+type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [error, setError] = useState<ErrorMessage>(null);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [submitAvailable, setSubmitAvailable] = useState(false);
 
@@ -50,13 +27,9 @@ export default function Login() {
     setFormData(nextFormData);
 
     if (!Object.values(nextFormData).some(value => value.trim() === "")) {
-      if (!submitAvailable) {
-        setSubmitAvailable(true);
-      }
+      setSubmitAvailable(true);
     } else {
-      if (submitAvailable) {
-        setSubmitAvailable(false);
-      }
+      setSubmitAvailable(false);
     }
   }  
 
@@ -108,8 +81,6 @@ export default function Login() {
     }
 
     document.cookie = `accessToken=${response.data.accessToken};max-age=${1000 * 60 * 60 * 24 * 7};path=/;secure;`
-    
-    setError(null);
     navigate("/dashboard");
   }
 
@@ -148,16 +119,18 @@ export default function Login() {
           <div className="space-y-6">
             
             <TextInput 
-              name="Email"
-              reference="email"
+              name="email"
+              key="email"
               type="text"
+              title="Email"
               onChange={handleInputChange}
             />
 
-            <TextInput 
-              name="Password"
-              reference="password"
+            <TextInput
+              name="password"
+              key="password"
               type="password"
+              title="Password"
               onChange={handleInputChange}
             />
 
@@ -171,7 +144,6 @@ export default function Login() {
               text="Login"
               available={submitAvailable}
               onSubmit={onSubmit}
-              error={error}
             />
 
           </div>
