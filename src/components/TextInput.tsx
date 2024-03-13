@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 
 type Props = {
   name: string;
-  reference: string;
   type: "text" | "password";
+  title: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const TextInput: React.FC<Props> = ({ name, reference, type, onChange }) => {
+const TextInput: React.FC<Props> = ({ name, type, title, onChange }) => {
   const [inputFocus, setInputFocus] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,13 +16,13 @@ const TextInput: React.FC<Props> = ({ name, reference, type, onChange }) => {
 
   return (
     <div className="TextInput">
-      <span className={`TextInput-key ${!inputFocus ? "" : "TextInput-key-shrink"}`}>{name}</span>
+      <span className={`TextInput-key ${!inputFocus ? "" : "TextInput-key-shrink"}`}>{title}</span>
       <input
         type={type}
-        name={reference}
-        onChange={handleInputChange}
-        placeholder=""
+        name={name}
         className="TextInput-element" 
+        placeholder=""
+        onChange={handleInputChange}
         onFocus={() => setInputFocus(true)} 
         onBlur={(event) => {
           if (event.target.value.trim() === "") { setInputFocus(false) }

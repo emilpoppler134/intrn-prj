@@ -3,22 +3,20 @@ import React, { useState } from 'react';
 type Props = {
   text: string;
   available: boolean;
-  onSubmit: () => void;
-  error?: string | null;
+  onSubmit: () => Promise<void> | void;
 }
 
-const SubmitButton: React.FC<Props> = ({ text, available, onSubmit, error }) => {
+const SubmitButton: React.FC<Props> = ({ text, available, onSubmit }) => {
   const [loading, setLoading] = useState(false);
 
-  const onButtonClick = () => {
+  const onButtonClick = async () => {
     if (available) {
       setLoading(true);
-      onSubmit();
-    }
-  }
 
-  if (error && loading) {
-    setLoading(false);
+      await onSubmit();
+
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,7 +26,7 @@ const SubmitButton: React.FC<Props> = ({ text, available, onSubmit, error }) => 
     >
       {!loading ? 
         <span className="SubmitButton-Text">{text}</span>
-      :
+        :
         <div className="theme-spinner"></div>
       }
     </button>
