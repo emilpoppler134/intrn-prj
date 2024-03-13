@@ -1,7 +1,135 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { API_ADDRESS } from '../config';
 
+import TextInput from '../components/TextInput';
+import SubmitButton from '../components/SubmitButton';
+import ErrorAlert from '../components/ErrorAlert';
+
+enum ResponseStatus {
+  OK = "OK",
+  ERROR = "ERROR"
+}
+
+enum ErrorType {
+  INVALID_PARAMS = "INVALID_PARAMS",
+  DATABASE_ERROR = "DATABASE_ERROR",
+  HASH_PARSING = "HASH_PARSING",
+  USER_EXISTS = "USER_EXISTS",
+  NO_RESULT = "NO_RESULT",
+  MAIL_ERROR = "MAIL_ERROR",
+}
+
+type LoginResponse = {
+  status: ResponseStatus;
+  data?: AccessToken;
+  error?: ErrorType;
+} | null;
+
+type AccessToken = {
+  accessToken: string;
+}
+
+type ErrorMessage = string | null;
+
 export default function Login() {
+  const navigate = useNavigate();
+
+  const [error, setError] = useState<ErrorMessage>(null);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [submitAvailable, setSubmitAvailable] = useState(false);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+    const nextFormData = {
+      ...formData,
+      [name]: value
+    }
+
+    setFormData(nextFormData);
+
+    if (!Object.values(nextFormData).some(value => value.trim() === "")) {
+      if (!submitAvailable) {
+        setSubmitAvailable(true);
+      }
+    } else {
+      if (submitAvailable) {
+        setSubmitAvailable(false);
+      }
+    }
+  }  
+
+  const onSubmit = async () => {
+    setError(null);
+    
+    const email = formData.email;
+    const password = formData.password;
+
+    const response = await fetchLogin(email, password);
+
+    if (response === null) {
+      setError("Something went wrong when the request was sent.");
+      return;
+    }
+
+    if (response.status === ResponseStatus.ERROR) {
+      switch (response.error) {
+        case ErrorType.INVALID_PARAMS: {
+          setError("Invalid parameters.");
+          return;
+        }
+        
+        case ErrorType.HASH_PARSING: {
+          setError("Couldn't hash the password you provided.");
+          return;
+        }
+
+        case ErrorType.NO_RESULT: {
+          setError("The email or password are incorrect.");
+          return;
+        }
+
+        case ErrorType.DATABASE_ERROR: {
+          setError("Something went wrong when createing the user.");
+          return;
+        }
+
+        default: {
+          setError("Something went wrong.");
+          return;
+        }
+      }
+    }
+
+    if (response.data === undefined) {
+      setError("Something went wrong.");
+      return;
+    }
+
+    document.cookie = `accessToken=${response.data.accessToken};max-age=${1000 * 60 * 60 * 24 * 7};path=/;secure;`
+    
+    setError(null);
+    navigate("/dashboard");
+  }
+
+  const fetchLogin = async (email: string, password: string): Promise<LoginResponse> => {
+    try {
+      const options: RequestInit = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email, password
+        })
+      }
+
+      const response: Response = await fetch(`${API_ADDRESS}/users/login`, options);
+      return response.ok ? await response.json() : null;
+    } catch(err) { return null; }
+  }
+
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -17,55 +145,36 @@ export default function Login() {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" action="/login" method="POST">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                Email address
-              </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
-              </div>
+          <div className="space-y-6">
+            
+            <TextInput 
+              name="Email"
+              reference="email"
+              type="text"
+              onChange={handleInputChange}
+            />
+
+            <TextInput 
+              name="Password"
+              reference="password"
+              type="password"
+              onChange={handleInputChange}
+            />
+
+            <div className="text-sm">
+              <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-500">
+                <span className="font-semibold">Forgot password?</span>
+              </Link>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-                  Password
-                </label>
-                <div className="text-sm">
-                  <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-500">
-                    <span className="font-semibold">Forgot password?</span>
-                  </Link>
-                </div>
-              </div>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
+            <SubmitButton
+              text="Login"
+              available={submitAvailable}
+              onSubmit={onSubmit}
+              error={error}
+            />
 
-            <div>
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <button className="w-full	px-4 py-2 border flex gap-2 border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:shadow transition duration-150">
@@ -74,6 +183,10 @@ export default function Login() {
           </button>
         </div>
       </div>
+
+      {error === null ? null :
+        <ErrorAlert message={error} onClose={() => setError(null)} />
+      }
     </>
   )
 }

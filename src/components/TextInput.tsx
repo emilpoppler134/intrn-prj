@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 
-interface Props {
+type Props = {
   name: string;
   reference: string;
   type: "text" | "password";
-  callback(key: string, value: string): void;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const TextInput: React.FC<Props> = ({ name, reference, type, callback }) => {
+const TextInput: React.FC<Props> = ({ name, reference, type, onChange }) => {
   const [inputFocus, setInputFocus] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    callback(reference, event.target.value);
+    onChange(event);
   }
 
   return (
@@ -19,6 +19,7 @@ export const TextInput: React.FC<Props> = ({ name, reference, type, callback }) 
       <span className={`TextInput-key ${!inputFocus ? "" : "TextInput-key-shrink"}`}>{name}</span>
       <input
         type={type}
+        name={reference}
         onChange={handleInputChange}
         placeholder=""
         className="TextInput-element" 
@@ -30,3 +31,5 @@ export const TextInput: React.FC<Props> = ({ name, reference, type, callback }) 
     </div>
   )
 }
+
+export default TextInput;
