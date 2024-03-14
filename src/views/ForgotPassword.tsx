@@ -204,7 +204,7 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.NO_RESULT: {
-          setError("The email or reset code are incorrect.");
+          setError("The reset code are incorrect.");
           return;
         }
 
@@ -247,7 +247,7 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when updating the password or reset code.");
+          setError("Something went wrong when updating the password.");
           return;
         }
 

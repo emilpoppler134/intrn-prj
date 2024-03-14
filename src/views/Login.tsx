@@ -64,7 +64,7 @@ export default function Login() {
         }
 
         case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when createing the user.");
+          setError("Something went wrong when createing the access token.");
           return;
         }
 
