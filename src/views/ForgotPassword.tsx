@@ -9,6 +9,15 @@ import AuthLayout from '../components/AuthLayout';
 
 type ForgotPasswordResponse = ApiResponse | null;
 
+type CurrentFormDataType = { email: string } | { code: string } | { password: string, reenteredPassword: string }
+type FormDataType = { email: string, code: string, password: string, reenteredPassword: string }
+
+const descriptions: Array<string> = [
+  "Please enter the email associated with your account. We'll send a verification code to reset your password.",
+  "Check your email inbox for a verification code. Enter the code below to proceed with resetting your password.",
+  "Enter a new password for your account."
+]
+
 type StepProps = {
   onRequestSubmit: () => void;
   onConfirmationSubmit: () => void;
@@ -17,15 +26,6 @@ type StepProps = {
   submitAvailable: boolean;
   step: number;
 }
-
-type CurrentFormDataType = { email: string } | { code: string } | { password: string }
-type FormDataType = { email: string, code: string, password: string }
-
-const descriptions: Array<string> = [
-  "Please enter the email associated with your account. We'll send a verification code to reset your password.",
-  "Check your email inbox for a verification code. Enter the code below to proceed with resetting your password.",
-  "Enter a new password for your account."
-]
 
 const Steps: React.FC<StepProps> = ({
   onRequestSubmit,
@@ -87,6 +87,14 @@ const Steps: React.FC<StepProps> = ({
             onChange={handleInputChange}
           />
 
+          <TextInput
+            name="reenteredPassword"
+            key="reenteredPassword"
+            type="password"
+            title="Re-enter new password"
+            onChange={handleInputChange}
+          />
+
           <SubmitButton
             text="Save"
             available={submitAvailable}
@@ -111,7 +119,7 @@ export default function ForgotPassword() {
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormDataType>({ email: "", code: "", password: "" });
+  const [formData, setFormData] = useState<FormDataType>({ email: "", code: "", password: "", reenteredPassword: "" });
   const [currentFormData, setCurrentFormData] = useState<CurrentFormDataType>({ email: ""});
   const [submitAvailable, setSubmitAvailable] = useState(false);
 
@@ -162,7 +170,7 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when createing the reset code.");
+          setError("Something went wrong when createing the verification code.");
           return;
         }
 
@@ -204,7 +212,7 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.NO_RESULT: {
-          setError("The reset code are incorrect.");
+          setError("The verification code is incorrect.");
           return;
         }
 
@@ -216,7 +224,7 @@ export default function ForgotPassword() {
     }
 
     setSubmitAvailable(false);
-    setCurrentFormData({ password: "" });
+    setCurrentFormData({ password: "", reenteredPassword: "" });
     setStep(2);
   }
 
@@ -226,8 +234,14 @@ export default function ForgotPassword() {
     const email = formData.email;
     const code = formData.code;
     const password = formData.password;
+    const reenteredPassword = formData.reenteredPassword;
 
-    const response = await fetchForgotPasswordReset(email, code, password);
+    if (password !== reenteredPassword) {
+      setError("Passwords doesn't match.");
+      return;
+    }
+
+    const response = await fetchForgotPasswordSubmit(email, code, password);
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -242,17 +256,17 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.NO_RESULT: {
-          setError("The email or reset code are incorrect.");
-          return;
-        }
-
-        case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when updating the password.");
+          setError("The email or the verification code is incorrect.");
           return;
         }
 
         case ErrorType.HASH_PARSING: {
           setError("Couldn't hash the password you provided.");
+          return;
+        }
+
+        case ErrorType.DATABASE_ERROR: {
+          setError("Something went wrong when updating the password.");
           return;
         }
 
@@ -300,7 +314,7 @@ export default function ForgotPassword() {
     } catch(err) { return null; }
   }
 
-  const fetchForgotPasswordReset = async (email: string, code: string, password: string): Promise<ForgotPasswordResponse> => {
+  const fetchForgotPasswordSubmit = async (email: string, code: string, password: string): Promise<ForgotPasswordResponse> => {
     try {
       const options: RequestInit = {
         method: "POST",
@@ -312,7 +326,7 @@ export default function ForgotPassword() {
         })
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/forgot-password-reset`, options);
+      const response: Response = await fetch(`${API_ADDRESS}/users/forgot-password-submit`, options);
       return response.ok ? await response.json() : null;
     } catch(err) { return null; }
   }
