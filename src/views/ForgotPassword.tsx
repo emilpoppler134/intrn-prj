@@ -33,6 +33,8 @@ const Steps: React.FC<StepProps> = ({
     case 0: {
       return (
         <>
+          <span className="text-base font-medium text-gray-700">Please enter the email associated with your account. We'll send a verification code to reset your password.</span>
+
           <TextInput
             name="email"
             key="email"
@@ -42,7 +44,7 @@ const Steps: React.FC<StepProps> = ({
           />
 
           <SubmitButton
-            text="Send mail"
+            text="Next"
             available={submitAvailable}
             onSubmit={onRequestSubmit}
           />
@@ -53,6 +55,8 @@ const Steps: React.FC<StepProps> = ({
     case 1: {
       return (
         <>
+          <span className="text-base font-medium text-gray-700">Check your email inbox for a verification code. Enter the code below to proceed with resetting your password.</span>
+
           <TextInput
             name="code"
             key="code"
@@ -62,7 +66,7 @@ const Steps: React.FC<StepProps> = ({
           />
 
           <SubmitButton
-            text="Check code"
+            text="Next"
             available={submitAvailable}
             onSubmit={onConfirmationSubmit}
           />
@@ -73,6 +77,8 @@ const Steps: React.FC<StepProps> = ({
     case 2: {
       return (
         <>
+          <span className="text-base font-medium text-gray-700">Enter a new password for your account.</span>
+
           <TextInput
             name="password"
             key="password"
@@ -93,7 +99,7 @@ const Steps: React.FC<StepProps> = ({
     default: {
       return (
         <>
-          <span>Something went wrong.</span>
+          <span className="text-base font-medium text-gray-700">Something went wrong.</span>
         </>
       )
     }
@@ -315,24 +321,23 @@ export default function ForgotPassword() {
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          { step === 2 ? null :
-            <div className="text-sm">
-              <Link to="/login" className="flex font-semibold text-gray-900 hover:text-gray-800">
-                <svg className="w-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
-                </svg>
-                <span>Back to login</span>
-              </Link>
-            </div>
-          }
+          <div className="text-sm">
+            <Link to="/login" className="flex font-semibold text-gray-900 hover:text-gray-800">
+              <svg className="w-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
+              </svg>
+              <span>Back to login</span>
+            </Link>
+          </div>
 
           <img
             className="mx-auto h-16 w-auto"
             alt="Logo"
             src={`${API_ADDRESS}/images/logo.png`}
           />
+
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-            Forgot password?
+            <span>Reset password</span>
           </h2>
         </div>
 
