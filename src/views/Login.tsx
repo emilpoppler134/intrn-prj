@@ -116,7 +116,7 @@ export default function Login() {
       footerLinkFor="login"
       onErrorClose={() => setError(null)}
       onGoogleAuthClick={onGoogleAuthLogin}
-      showGoogleAuth="Login"
+      showGoogleAuth="login"
       title="Sign in to your account"
     >
       <TextInput 

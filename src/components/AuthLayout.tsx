@@ -5,6 +5,7 @@ import ErrorAlert from './ErrorAlert';
 import { Link } from 'react-router-dom';
 
 type FooterLinkType = "login" | "signup" | "forgot-password";
+export type ShowGoogleAuthType = "login" | "signup" | false;
 
 type FooterLinkProps = {
   page: FooterLinkType;
@@ -52,7 +53,7 @@ type Props = {
   footerLinkFor: FooterLinkType;
   onErrorClose: () => void;
   onGoogleAuthClick?: () => void;
-  showGoogleAuth: "Login" | "Signup" | false;
+  showGoogleAuth: ShowGoogleAuthType;
   title: string;
 }
 
