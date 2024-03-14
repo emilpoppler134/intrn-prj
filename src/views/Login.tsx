@@ -5,7 +5,8 @@ import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
 
 import TextInput from '../components/TextInput';
 import SubmitButton from '../components/SubmitButton';
-import ErrorAlert from '../components/ErrorAlert';
+import Checkbox from '../components/Checkbox';
+import AuthLayout from '../components/AuthLayout';
 
 type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
 
@@ -31,7 +32,15 @@ export default function Login() {
     } else {
       setSubmitAvailable(false);
     }
-  }  
+  }
+
+  const handleRememberChange = (checked: boolean) => {
+    console.log("Remember me checkbox is checked: " + checked);
+  }
+
+  const onGoogleAuthLogin = () => {
+    console.log("User requested to login with google");
+  }
 
   const onSubmit = async () => {
     setError(null);
@@ -102,63 +111,47 @@ export default function Login() {
   }
 
   return (
-    <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
-            className="mx-auto h-16 w-auto"
-            alt="Logo"
-            src={`${API_ADDRESS}/images/logo.png`}
-          />
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
+    <AuthLayout
+      error={error}
+      footerLinkFor="login"
+      onErrorClose={() => setError(null)}
+      onGoogleAuthClick={onGoogleAuthLogin}
+      showGoogleAuth="Login"
+      title="Sign in to your account"
+    >
+      <TextInput 
+        name="email"
+        key="email"
+        type="text"
+        title="Email"
+        onChange={handleInputChange}
+      />
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <div className="space-y-6">
-            
-            <TextInput 
-              name="email"
-              key="email"
-              type="text"
-              title="Email"
-              onChange={handleInputChange}
-            />
+      <TextInput
+        name="password"
+        key="password"
+        type="password"
+        title="Password"
+        onChange={handleInputChange}
+      />
 
-            <TextInput
-              name="password"
-              key="password"
-              type="password"
-              title="Password"
-              onChange={handleInputChange}
-            />
+      <div className="flex items-center justify-between">
+        <Checkbox
+          name="remember"
+          title="Remember me"
+          onChange={handleRememberChange}
+        />
 
-            <div className="text-sm">
-              <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-500">
-                <span className="font-semibold">Forgot password?</span>
-              </Link>
-            </div>
-
-            <SubmitButton
-              text="Login"
-              available={submitAvailable}
-              onSubmit={onSubmit}
-            />
-
-          </div>
-        </div>
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <button className="w-full	px-4 py-2 border flex gap-2 border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:shadow transition duration-150">
-            <img className="w-6 h-6" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo" />
-            <span>Login with Google</span>
-          </button>
-        </div>
+        <Link to="/forgot-password" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
+          <span>Forgot password?</span>
+        </Link>
       </div>
 
-      {error === null ? null :
-        <ErrorAlert message={error} onClose={() => setError(null)} />
-      }
-    </>
+      <SubmitButton
+        text="Login"
+        available={submitAvailable}
+        onSubmit={onSubmit}
+      />
+    </AuthLayout>
   )
 }
