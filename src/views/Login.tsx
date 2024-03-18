@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios, { AxiosResponse } from 'axios';
 
@@ -20,6 +20,8 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [submitAvailable, setSubmitAvailable] = useState(false);
+
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -44,6 +46,12 @@ export default function Login() {
 
   const onGoogleAuthLogin = () => {
     console.log("User requested to login with google");
+  }
+
+  const handleEnterKeyPress = () => {
+    if (!Object.values(formData).some(value => value.trim() === "")) {
+      onSubmit();
+    }
   }
 
   const onSubmit = async () => {
@@ -123,6 +131,7 @@ export default function Login() {
         type="text"
         title="Email"
         onChange={handleInputChange}
+        onEnterKeyPress={() => passwordInputRef?.current?.focus()}
       />
 
       <TextInput
@@ -130,7 +139,9 @@ export default function Login() {
         key="password"
         type="password"
         title="Password"
+        reference={passwordInputRef}
         onChange={handleInputChange}
+        onEnterKeyPress={handleEnterKeyPress}
       />
 
       <div className="flex items-center justify-between">
