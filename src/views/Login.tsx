@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios, { AxiosResponse } from 'axios';
+
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
 
@@ -89,24 +91,18 @@ export default function Login() {
       return;
     }
 
-    document.cookie = `accessToken=${response.data.accessToken};max-age=${1000 * 60 * 60 * 24 * 7};path=/;secure;`
+    setToken(response.data.accessToken);
     navigate("/dashboard");
   }
 
   const fetchLogin = async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email, password
-        })
+      const body = {
+        email, password
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/login`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/login`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 

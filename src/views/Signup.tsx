@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios, { AxiosResponse } from 'axios';
+
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
 
@@ -312,52 +314,34 @@ export default function Signup() {
 
   const fetchSignupRequest = async (name: string, email: string): Promise<SignupStatusResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name, email
-        })
+      const body = {
+        name, email
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/signup-request`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-request`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 
   const fetchSignupConfirmation = async (email: string, code: string): Promise<SignupStatusResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email, code
-        })
+      const body = {
+        email, code
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/signup-confirmation`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-confirmation`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 
   const fetchSignupSubmit = async (name: string, email: string, code: string, password: string): Promise<SignupResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name, email, code, password
-        })
+      const body = {
+        name, email, code, password
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/signup-submit`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-submit`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 

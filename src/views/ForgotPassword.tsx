@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios, { AxiosResponse } from 'axios';
+
 import { API_ADDRESS } from '../config';
 import { ResponseStatus, ErrorType, ApiResponse } from '../types/ApiResponses';
 
@@ -282,52 +284,34 @@ export default function ForgotPassword() {
 
   const fetchForgotPasswordRequest = async (email: string): Promise<ForgotPasswordResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email
-        })
+      const body = {
+        email
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/forgot-password-request`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-request`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 
   const fetchForgotPasswordConfirmation = async (email: string, code: string): Promise<ForgotPasswordResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email, code
-        })
+      const body = {
+        email, code
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/forgot-password-confirmation`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-confirmation`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 
   const fetchForgotPasswordSubmit = async (email: string, code: string, password: string): Promise<ForgotPasswordResponse> => {
     try {
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email, code, password
-        })
+      const body = {
+        email, code, password
       }
 
-      const response: Response = await fetch(`${API_ADDRESS}/users/forgot-password-submit`, options);
-      return response.ok ? await response.json() : null;
+      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-submit`, body);
+      return response.data;
     } catch(err) { return null; }
   }
 
