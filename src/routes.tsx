@@ -7,6 +7,7 @@ import Login from "./views/Login";
 import Signup from "./views/Signup";
 import ForgotPassword from "./views/ForgotPassword";
 import Dashboard from "./views/Dashboard";
+import NotFound from "./views/NotFound";
 
 const Routes = () => {
   // Define public routes accessible to all users
@@ -14,6 +15,7 @@ const Routes = () => {
     {
       path: "/",
       element: <Startpage />,
+      errorElement: <NotFound />
     },
     {
       path: "/login",
