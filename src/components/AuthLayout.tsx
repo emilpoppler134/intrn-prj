@@ -77,11 +77,13 @@ const AuthLayout: React.FC<Props> = ({
       <div className="flex justify-center items-center h-full">
         <div className="w-full bg-white rounded-lg shadow p-6 lg:px-8 dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img
-              className="h-16 w-auto"
-              alt="Logo"
-              src={`${API_ADDRESS}/images/logo.png`}
-            />
+            <Link to="/">
+              <img
+                className="h-16 w-auto"
+                alt="Logo"
+                src={`${API_ADDRESS}/images/logo.png`}
+              />
+            </Link>
 
             <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight text-gray-900">
               <span>{title}</span>
