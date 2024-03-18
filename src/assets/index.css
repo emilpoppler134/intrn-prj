@@ -25,6 +25,6 @@ code {
     monospace;
 }
 
-input {
+input, button {
   outline: none;
 }
