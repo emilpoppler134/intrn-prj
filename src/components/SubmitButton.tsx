@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { dynamicClassNames } from '../utils/dynamicClassNames';
 
 type Props = {
   text: string;
@@ -21,7 +22,10 @@ const SubmitButton: React.FC<Props> = ({ text, available, onSubmit }) => {
 
   return (
     <button 
-      className={`SubmitButton ${available ? null : "SubmitButton--incomplete"} bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300`}
+      className={dynamicClassNames(
+        !available ? "SubmitButton--incomplete" : "",
+        "SubmitButton bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300"
+      )}
       onClick={onButtonClick}
     >
       {!loading ? 

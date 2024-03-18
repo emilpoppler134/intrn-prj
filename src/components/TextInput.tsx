@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { dynamicClassNames } from '../utils/dynamicClassNames';
 
 type Props = {
   name: string;
@@ -16,7 +17,13 @@ const TextInput: React.FC<Props> = ({ name, type, title, onChange }) => {
 
   return (
     <div className="TextInput">
-      <span className={`TextInput-key ${!inputFocus ? "" : "TextInput-key-shrink"}`}>{title}</span>
+      <span 
+        className={dynamicClassNames(
+          inputFocus ? "TextInput-key-shrink" : "",
+          "TextInput-key"
+        )}
+      >{title}</span>
+
       <input
         type={type}
         name={name}
