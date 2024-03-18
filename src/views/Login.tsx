@@ -4,6 +4,7 @@ import axios, { AxiosResponse } from 'axios';
 
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
+import { useAuth } from '../provider/authProvider';
 
 import TextInput from '../components/TextInput';
 import SubmitButton from '../components/SubmitButton';
@@ -14,6 +15,7 @@ type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string;
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setToken } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ email: "", password: "" });

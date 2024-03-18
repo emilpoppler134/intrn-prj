@@ -4,6 +4,7 @@ import axios, { AxiosResponse } from 'axios';
 
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
+import { useAuth } from '../provider/authProvider';
 
 import TextInput from '../components/TextInput';
 import SubmitButton from '../components/SubmitButton';
@@ -129,6 +130,7 @@ const Steps: React.FC<StepProps> = ({
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { setToken } = useAuth();
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -308,7 +310,7 @@ export default function Signup() {
       return;
     }
 
-    document.cookie = `accessToken=${response.data.accessToken};max-age=${1000 * 60 * 60 * 24 * 7};path=/;secure;`
+    setToken(response.data.accessToken);
     navigate("/dashboard");
   }
 
