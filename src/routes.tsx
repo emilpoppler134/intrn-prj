@@ -8,6 +8,9 @@ import Signup from "./views/Signup";
 import ForgotPassword from "./views/ForgotPassword";
 import Dashboard from "./views/Dashboard";
 import NotFound from "./views/NotFound";
+import BotChat from "./views/BotChat";
+import BotConfig from "./views/BotConfig";
+import Settings from "./views/Settings";
 
 const Routes = () => {
   // Define public routes accessible to all users
@@ -40,7 +43,19 @@ const Routes = () => {
         {
           path: "/dashboard",
           element: <Dashboard />,
-        }
+        },
+        {
+          path: "/settings",
+          element: <Settings />,
+        },
+        {
+          path: "/bots/:id",
+          element: <BotChat />,
+        },
+        {
+          path: "/bots/:id/config",
+          element: <BotConfig />,
+        },
       ],
     },
   ];
