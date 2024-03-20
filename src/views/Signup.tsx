@@ -1,22 +1,18 @@
-import { useState } from 'react';
+import { useRef, useState, MutableRefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosResponse } from 'axios';
 
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
+import { emailValidation } from '../utils/validation';
 import { useAuth } from '../provider/authProvider';
-
-import TextInput from '../components/TextInput';
-import SubmitButton from '../components/SubmitButton';
+import { useForm, FormValues, FormHook } from '../hooks/useForm';
 import AuthLayout from '../components/AuthLayout';
-
-import type { ShowGoogleAuthType } from '../components/AuthLayout';
+import SubmitButton from '../components/SubmitButton';
+import TextInput from '../components/TextInput';
 
 type SignupStatusResponse = ApiResponse | null;
 type SignupResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
-
-type CurrentFormDataType = { name: string, email: string } | { code: string } | { password: string, reenteredPassword: string }
-type FormDataType = { name: string, email: string, code: string, password: string, reenteredPassword: string }
 
 const descriptions: Array<string> = [
   "Please enter your full name and your email. We'll send a verification code to your email.",
@@ -25,24 +21,34 @@ const descriptions: Array<string> = [
 ]
 
 type StepProps = {
-  onRequestSubmit: () => void;
-  onConfirmationSubmit: () => void;
-  onSignupSubmit: () => void;
-  handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  submitAvailable: boolean;
+  onConfirmationSubmit: (values: FormValues) => Promise<void>;
+  onRequestSubmit: (values: FormValues) => Promise<void>;
+  onSignupSubmit: (values: FormValues) => Promise<void>;
+  emailInputRef: MutableRefObject<HTMLInputElement | null>;
+  reenteredPasswordInputRef: MutableRefObject<HTMLInputElement | null>;
+  form: FormHook;
   step: number;
 }
 
 const Steps: React.FC<StepProps> = ({
-  onRequestSubmit,
   onConfirmationSubmit,
+  onRequestSubmit,
   onSignupSubmit,
-  handleInputChange,
-  submitAvailable,
+  emailInputRef,
+  reenteredPasswordInputRef,
+  form,
   step
 }) => {
   switch (step) {
     case 0: {
+      const handleNameEnterKeyPress = async () => {
+        emailInputRef?.current?.focus();
+      }
+
+      const handleEmailEnterKeyPress = async () => {
+        await form.handleSubmit(onRequestSubmit);
+      }
+
       return (
         <>
           <TextInput 
@@ -50,7 +56,8 @@ const Steps: React.FC<StepProps> = ({
             key="name"
             type="text"
             title="Name"
-            onChange={handleInputChange}
+            form={form}
+            onEnterKeyPress={handleNameEnterKeyPress}
           />
 
           <TextInput 
@@ -58,19 +65,25 @@ const Steps: React.FC<StepProps> = ({
             key="email"
             type="text"
             title="Email"
-            onChange={handleInputChange}
+            reference={emailInputRef}
+            form={form}
+            onEnterKeyPress={handleEmailEnterKeyPress}
           />
 
           <SubmitButton
             text="Next"
-            available={submitAvailable}
-            onSubmit={onRequestSubmit}
+            form={form}
+            onPress={onRequestSubmit}
           />
         </>
       )
     }
 
     case 1: {
+      const handleCodeEnterKeyPress = async () => {
+        await form.handleSubmit(onConfirmationSubmit);
+      }
+
       return (
         <>
           <TextInput
@@ -78,19 +91,28 @@ const Steps: React.FC<StepProps> = ({
             key="code"
             type="text"
             title="Verification code"
-            onChange={handleInputChange}
+            form={form}
+            onEnterKeyPress={handleCodeEnterKeyPress}
           />
 
           <SubmitButton
             text="Next"
-            available={submitAvailable}
-            onSubmit={onConfirmationSubmit}
+            form={form}
+            onPress={onConfirmationSubmit}
           />
         </>
       )
     }
 
     case 2: {
+      const handlePasswordEnterKeyPress = async () => {
+        reenteredPasswordInputRef?.current?.focus();
+      }
+
+      const handleReenteredPasswordEnterKeyPress = async () => {
+        await form.handleSubmit(onSignupSubmit);
+      }
+
       return (
         <>
           <TextInput
@@ -98,7 +120,8 @@ const Steps: React.FC<StepProps> = ({
             key="password"
             type="password"
             title="New password"
-            onChange={handleInputChange}
+            form={form}
+            onEnterKeyPress={handlePasswordEnterKeyPress}
           />
 
           <TextInput
@@ -106,13 +129,15 @@ const Steps: React.FC<StepProps> = ({
             key="reenteredPassword"
             type="password"
             title="Re-enter new password"
-            onChange={handleInputChange}
+            reference={reenteredPasswordInputRef}
+            form={form}
+            onEnterKeyPress={handleReenteredPasswordEnterKeyPress}
           />
 
           <SubmitButton
             text="Save"
-            available={submitAvailable}
-            onSubmit={onSignupSubmit}
+            form={form}
+            onPress={onSignupSubmit}
           />
         </>
       )
@@ -131,45 +156,29 @@ const Steps: React.FC<StepProps> = ({
 export default function Signup() {
   const navigate = useNavigate();
   const { setToken } = useAuth();
-
+  
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormDataType>({ name: "", email: "", code: "", password: "", reenteredPassword: "" });
-  const [currentFormData, setCurrentFormData] = useState<CurrentFormDataType>({ name: "", email: "" });
-  const [submitAvailable, setSubmitAvailable] = useState(false);
-  const [showGoogleSignup, setShowGoogleSignup] = useState<ShowGoogleAuthType>("signup");
+  const [showGoogleSignup, setShowGoogleSignup] = useState<boolean>(true);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
+  const reenteredPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
-    const nextFormData = {
-      ...formData,
-      [name]: value
-    }
-    setFormData(nextFormData);
-
-    const nextCurrentFormData = {
-      ...currentFormData,
-      [name]: value
-    }
-    setCurrentFormData(nextCurrentFormData);
-
-    if (!Object.values(nextCurrentFormData).some(value => value.trim() === "")) {
-      setSubmitAvailable(true);
-    } else {
-      setSubmitAvailable(false);
-    }
-  }
+  const form = useForm(
+    [
+      [{ key: "name" }, { key: "email", helperText: "Enter a valid email.", validation: emailValidation }],
+      [{ key: "code" }],
+      [{ key: "password" }, { key: "reenteredPassword" }]
+    ],
+    step
+  );
 
   const onGoogleAuthSignup = () => {
     console.log("User requested to signup with google");
   }
 
-  const onRequestSubmit = async () => {
+  const handleRequestSubmit = async ({ name, email }: FormValues) => {
     setError(null);
-
-    const name = formData.name;
-    const email = formData.email;
 
     const response = await fetchSignupRequest(name, email);
 
@@ -208,16 +217,11 @@ export default function Signup() {
     }
 
     setShowGoogleSignup(false);
-    setSubmitAvailable(false);
-    setCurrentFormData({ code: "" });
     setStep(1);
   }
 
-  const onConfirmationSubmit = async () => {
+  const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
     setError(null);
-    
-    const email = formData.email;
-    const code = formData.code;
 
     const response = await fetchSignupConfirmation(email, code);
 
@@ -245,19 +249,11 @@ export default function Signup() {
       }
     }
 
-    setSubmitAvailable(false);
-    setCurrentFormData({ password: "", reenteredPassword: "" });
     setStep(2);
   }
 
-  const onSignupSubmit = async () => {
+  const handleSignupSubmit = async ({ name, email, code, password, reenteredPassword }: FormValues) => {
     setError(null);
-    
-    const name = formData.name;
-    const email = formData.email;
-    const code = formData.code;
-    const password = formData.password;
-    const reenteredPassword = formData.reenteredPassword;
 
     if (password !== reenteredPassword) {
       setError("Passwords doesn't match.");
@@ -349,20 +345,21 @@ export default function Signup() {
 
   return (
     <AuthLayout
-      error={error}
       description={descriptions[step]}
-      footerLinkFor="signup"
+      error={error}
       onErrorClose={() => setError(null)}
       onGoogleAuthClick={onGoogleAuthSignup}
+      page="signup"
       showGoogleAuth={showGoogleSignup}
       title="Create a new account"
     >
       <Steps
-        onRequestSubmit={onRequestSubmit}
-        onConfirmationSubmit={onConfirmationSubmit}
-        onSignupSubmit={onSignupSubmit}
-        handleInputChange={handleInputChange}
-        submitAvailable={submitAvailable}
+        onRequestSubmit={handleRequestSubmit}
+        onConfirmationSubmit={handleConfirmationSubmit}
+        onSignupSubmit={handleSignupSubmit}
+        emailInputRef={emailInputRef}
+        reenteredPasswordInputRef={reenteredPasswordInputRef}
+        form={form}
         step={step}
       />
     </AuthLayout>

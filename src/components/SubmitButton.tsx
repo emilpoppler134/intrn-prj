@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import { dynamicClassNames } from '../utils/dynamicClassNames';
+import { FormHook, FormValues } from '../hooks/useForm';
 
 type Props = {
   text: string;
-  available: boolean;
-  onSubmit: () => Promise<void> | void;
+  form: FormHook;
+  onPress: (formValues: FormValues) => Promise<void>
 }
 
-const SubmitButton: React.FC<Props> = ({ text, available, onSubmit }) => {
-  const [loading, setLoading] = useState(false);
+const SubmitButton: React.FC<Props> = ({ text, form, onPress }) => {
+  const [available, setAvaliable] = useState(false);
 
-  const onButtonClick = async () => {
+  useEffect(() => {
+    const isValid = form.validateForm();
+    setAvaliable(isValid === true ?? false);
+  }, [form]);
+
+  const onButtonClick = () => {
     if (available) {
-      setLoading(true);
-
-      await onSubmit();
-
-      setLoading(false);
+      form.handleSubmit(onPress);
     }
   }
 
@@ -28,7 +31,7 @@ const SubmitButton: React.FC<Props> = ({ text, available, onSubmit }) => {
       )}
       onClick={onButtonClick}
     >
-      {!loading ? 
+      {!form.loading ? 
         <span className="SubmitButton-Text">{text}</span>
         :
         <div className="theme-spinner"></div>

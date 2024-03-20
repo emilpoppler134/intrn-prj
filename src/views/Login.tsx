@@ -4,12 +4,13 @@ import axios, { AxiosResponse } from 'axios';
 
 import { API_ADDRESS } from '../config';
 import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
+import { emailValidation } from '../utils/validation';
 import { useAuth } from '../provider/authProvider';
-
-import TextInput from '../components/TextInput';
-import SubmitButton from '../components/SubmitButton';
-import Checkbox from '../components/Checkbox';
+import { useForm, FormValues } from '../hooks/useForm';
 import AuthLayout from '../components/AuthLayout';
+import Checkbox from '../components/Checkbox';
+import SubmitButton from '../components/SubmitButton';
+import TextInput from '../components/TextInput';
 
 type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
 
@@ -18,27 +19,12 @@ export default function Login() {
   const { setToken } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [submitAvailable, setSubmitAvailable] = useState(false);
-
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-
-    const nextFormData = {
-      ...formData,
-      [name]: value
-    }
-
-    setFormData(nextFormData);
-
-    if (!Object.values(nextFormData).some(value => value.trim() === "")) {
-      setSubmitAvailable(true);
-    } else {
-      setSubmitAvailable(false);
-    }
-  }
+  const form = useForm([[
+    { key: "email", helperText: "Enter a valid email.", validation: emailValidation },
+    { key: "password" }
+  ]]);
 
   const handleRememberChange = (checked: boolean) => {
     console.log("Remember me checkbox is checked: " + checked);
@@ -48,17 +34,16 @@ export default function Login() {
     console.log("User requested to login with google");
   }
 
-  const handleEnterKeyPress = () => {
-    if (!Object.values(formData).some(value => value.trim() === "")) {
-      onSubmit();
-    }
+  const handleEmailEnterKeyPress = async () => {
+    passwordInputRef?.current?.focus();
   }
 
-  const onSubmit = async () => {
+  const handlePasswordEnterKeyPress = async () => {
+    await form.handleSubmit(handleLogin);
+  }
+
+  const handleLogin = async ({ email, password }: FormValues) => {
     setError(null);
-    
-    const email = formData.email;
-    const password = formData.password;
 
     const response = await fetchLogin(email, password);
 
@@ -119,10 +104,10 @@ export default function Login() {
   return (
     <AuthLayout
       error={error}
-      footerLinkFor="login"
       onErrorClose={() => setError(null)}
       onGoogleAuthClick={onGoogleAuthLogin}
-      showGoogleAuth="login"
+      page="login"
+      showGoogleAuth={true}
       title="Sign in to your account"
     >
       <TextInput 
@@ -130,8 +115,8 @@ export default function Login() {
         key="email"
         type="text"
         title="Email"
-        onChange={handleInputChange}
-        onEnterKeyPress={() => passwordInputRef?.current?.focus()}
+        form={form}
+        onEnterKeyPress={handleEmailEnterKeyPress}
       />
 
       <TextInput
@@ -140,8 +125,8 @@ export default function Login() {
         type="password"
         title="Password"
         reference={passwordInputRef}
-        onChange={handleInputChange}
-        onEnterKeyPress={handleEnterKeyPress}
+        form={form}
+        onEnterKeyPress={handlePasswordEnterKeyPress}
       />
 
       <div className="flex items-center justify-between">
@@ -158,8 +143,8 @@ export default function Login() {
 
       <SubmitButton
         text="Login"
-        available={submitAvailable}
-        onSubmit={onSubmit}
+        form={form}
+        onPress={handleLogin}
       />
     </AuthLayout>
   )

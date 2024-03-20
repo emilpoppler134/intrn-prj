@@ -36,7 +36,6 @@
 /* Text Input */
 
 .TextInput {
-  box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(50 151 211 / 30%);
   width: 100%;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -50,7 +49,6 @@
   position: relative;
   cursor: text;
   transition: box-shadow .08s ease-in;
-  margin-bottom: 16px;
 }
 
 .TextInput:focus-within {
@@ -90,6 +88,15 @@
   top: 0;
   transform: translate(0, -50%) scale(0.8);
   transform-origin: top left;
+}
+
+.TextInput--Invalid {
+  box-shadow: 0 0 0 1px rgb(211 50 50 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(211 50 50 / 30%);
+  z-index: 2;  
+}
+
+.TextInput--Invalid .TextInput-key {
+  color: rgb(232 156 156);
 }
 
 /* Submit Button */
