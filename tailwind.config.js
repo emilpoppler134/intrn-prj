@@ -49,3 +49,4 @@ module.exports = {
   },
   plugins: [],
 }
+// Violet color palette primary: {"50":"#e4e1ff","100":"#d0c8ff","200":"#bcafff","300":"#a796ff","400":"#937dff","500":"#8c78f9","600":"#7a65f0","700":"#6851e8","800":"#573ddf","900":"#4529d5","950":"#2d0dc3"}
