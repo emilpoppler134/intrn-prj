@@ -4,11 +4,10 @@ import { API_ADDRESS } from '../config';
 import ErrorAlert from './ErrorAlert';
 import { Link } from 'react-router-dom';
 
-type FooterLinkType = "login" | "signup" | "forgot-password";
-export type ShowGoogleAuthType = "login" | "signup" | false;
+type Page = "login" | "signup" | "forgot-password";
 
 type FooterLinkProps = {
-  page: FooterLinkType;
+  page: Page;
 }
 
 const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
@@ -50,20 +49,20 @@ type Props = {
   children: ReactNode;
   description?: string;
   error: string | null;
-  footerLinkFor: FooterLinkType;
   onErrorClose: () => void;
   onGoogleAuthClick?: () => void;
-  showGoogleAuth: ShowGoogleAuthType;
+  page: Page;
+  showGoogleAuth: boolean;
   title: string;
 }
 
 const AuthLayout: React.FC<Props> = ({ 
   children,
-  error,
   description,
+  error,
   onErrorClose,
   onGoogleAuthClick,
-  footerLinkFor,
+  page,
   showGoogleAuth,
   title
 }) => {
@@ -76,7 +75,7 @@ const AuthLayout: React.FC<Props> = ({
     <div className="bg-gray-50 h-full">
       <div className="flex justify-center items-center h-full">
         <div className="w-full bg-white rounded-lg shadow p-6 lg:px-8 dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
-          <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <div className="flex flex-col items-start sm:mx-auto sm:w-full sm:max-w-sm">
             <Link to="/">
               <img
                 className="h-16 w-auto"
@@ -107,12 +106,12 @@ const AuthLayout: React.FC<Props> = ({
                 className="w-full	px-4 py-2 border flex gap-2 border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:shadow transition duration-150"
               >
                 <img className="w-6 h-6" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo" />
-                <span><span className="capitalize">{showGoogleAuth}</span> with Google</span>
+                <span><span className="capitalize">{page}</span> with Google</span>
               </button>
             </div>
           }
 
-          <FooterLink page={footerLinkFor} />
+          <FooterLink page={page} />
         </div>
       </div>
 
