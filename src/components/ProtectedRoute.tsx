@@ -5,13 +5,13 @@ import { useAuth } from '../provider/authProvider';
 
 export const ProtectedRoute: React.FC = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (token === null) {
+    if (user === null) {
       navigate("/login", { replace: true });
     }
-  }, [token, navigate]);
+  }, [user, navigate]);
 
-  return token ? <Outlet /> : null;
+  return user ? <Outlet /> : null;
 }

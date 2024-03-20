@@ -7,7 +7,7 @@ import { User } from '../types/User';
 
 type AuthContextProps = {
   token: string | null;
-  user: User | null;
+  user: User | null | undefined;
   setToken: (newToken: string | null) => void;
 } | null;
 
@@ -21,10 +21,11 @@ const AuthContext = createContext<AuthContextProps>(null);
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, _setToken] = useState<string | null>(localStorage.getItem("token"));
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
   const setToken = (newToken: string | null) => {
     _setToken(newToken);
+    setUser(undefined);
   }
 
   useEffect(() => {

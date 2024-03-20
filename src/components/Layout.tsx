@@ -57,6 +57,12 @@ const Layout: React.FC<Props> = ({ children, title }) => {
     } catch(err) { return null; }
   }
 
+  if (user === undefined) {
+    return (
+      <div className="theme-spinner"></div>
+    )
+  }
+
   return (
     <>
       <div className="min-h-full">
