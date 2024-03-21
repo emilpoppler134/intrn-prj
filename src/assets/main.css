@@ -126,3 +126,9 @@
 .SubmitButton--incomplete .SubmitButton-Text {
   opacity: .6;
 }
+
+/* Checkbox */
+
+.checkbox svg path {
+  stroke-width: 4;
+}

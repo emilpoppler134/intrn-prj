@@ -1,8 +1,9 @@
 import React, { Fragment, ReactNode, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Disclosure, Menu, Transition } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { UserIcon } from '@heroicons/react/24/solid';
 
 import { API_ADDRESS } from '../config';
 import { dynamicClassNames } from '../utils/dynamicClassNames';
@@ -102,11 +103,7 @@ const Layout: React.FC<Props> = ({ children, title }) => {
                           <Menu.Button className="relative flex max-w-xs items-center bg-gray-800 text-sm">
                             <span className="absolute -inset-1.5" />
                             <span className="sr-only">Open user menu</span>
-                            <div className="h-5 w-5 text-white">
-                              <svg className="h-full w-full fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                                <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" />
-                              </svg>
-                            </div>
+                            <UserIcon className="w-6 h-6 fill-white" aria-hidden="true" />
                           </Menu.Button>
                         </div>
                         <Transition
@@ -190,11 +187,7 @@ const Layout: React.FC<Props> = ({ children, title }) => {
                 <div className="border-t border-gray-700 pb-3 pt-4">
                   <div className="flex items-center px-5">
                     <div className="flex-shrink-0">
-                      <div className="h-5 w-5 text-white">
-                        <svg className="h-full w-full fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                          <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" />
-                        </svg>
-                      </div>
+                      <UserIcon className="w-6 h-6 fill-white" aria-hidden="true" />
                     </div>
                     <div className="ml-3">
                       <div className="text-base font-medium leading-none text-white">{ user.name }</div>
