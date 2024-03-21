@@ -1,5 +1,5 @@
 import { Bot } from "../types/Bot";
-import BotItem from "../components/BotItem";
+import BotListOverview from "../components/BotListOverview";
 import Layout from "../components/Layout";
 
 const botList: Array<Bot> = [
@@ -12,11 +12,7 @@ export default function Dashboard() {
     <Layout title="Overview">
       <div className="mx-auto max-w-2xl">
         <span className="px-p text-xl">Avaliable chatbots</span>
-        <div className="grid grid-cols-4 gap-12 mt-8">
-          {botList.map(item => (
-            <BotItem bot={item} />
-          ))}
-        </div>
+        <BotListOverview bots={botList} />
       </div>
     </Layout>
   )
