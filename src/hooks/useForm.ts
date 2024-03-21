@@ -5,6 +5,7 @@ import { defaultValidation, notEmpty } from '../utils/validation';
 export type FormHook = {
   data: FormData;
   loading: boolean;
+  clearData: () => void;
   setValue: (key: string, value: string) => void;
   setInvalid: (key: string, invalid: boolean) => void;
   validateForm: () => true | Array<string>;
@@ -50,6 +51,19 @@ export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
 
   const [data, setData] = useState<FormData>(initialFormState);
   const [loading, setLoading] = useState(false);
+
+  const clearData = () => {
+    Object.keys(data).forEach(key => {
+      setData(prevState => ({
+        ...prevState,
+        [key]: {
+          ...prevState[key],
+          value: "",
+          invalid: false
+        }
+      }));
+    });
+  };
 
   const setValue = (key: string, value: string) => {
     setData(prevState => ({
@@ -105,6 +119,7 @@ export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
   return {
     data,
     loading,
+    clearData,
     setValue,
     setInvalid,
     validateForm,
