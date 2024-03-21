@@ -81,6 +81,8 @@ export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
   }
 
   const handleSubmit = async (callback: (values: FormValues) => Promise<void>) => {
+    if (loading) return;
+
     const validation = validateForm();
     
     if (validation !== true) {
