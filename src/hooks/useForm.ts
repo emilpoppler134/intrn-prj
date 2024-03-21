@@ -31,7 +31,7 @@ type FormPropList = Array<Array<FormPropItem>>;
 type FormPropItem = {
   key: string;
   helperText?: string;
-  validation?: (value: string) => boolean;
+  validation?: ((value: string) => boolean) | null;
 }
 
 export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
@@ -44,7 +44,7 @@ export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
         value: '',
         invalid: false,
         helperText: item.helperText ?? null,
-        validation: item.validation ?? defaultValidation
+        validation: item.validation ?? item.validation === null ? (_) => true : defaultValidation
       };
     })
   });
