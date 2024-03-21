@@ -2,26 +2,27 @@ import React, { RefObject, useState } from 'react';
 
 import { dynamicClassNames } from '../utils/dynamicClassNames';
 import { FormHook } from '../hooks/useForm';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 
-type Props = {
+type TextAreaProps = {
   name: string;
-  type: "text" | "password";
   title: string;
-  reference?: RefObject<HTMLInputElement>;
+  description?: string;
+  rows: number;
+  reference?: RefObject<HTMLTextAreaElement>;
   autoFocus?: boolean;
   form: FormHook;
   onEnterKeyPress?: () => void;
 }
 
-const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFocus, onEnterKeyPress }) => {
+const TextArea: React.FC<TextAreaProps> = ({ name, title, description, rows, reference, form, autoFocus, onEnterKeyPress }) => {
   const [inputFocus, setInputFocus] = useState(autoFocus ?? false);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     form.setValue(name, event.target.value);
   }
 
-  const handleInputKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     form.setInvalid(name, false);
 
     if (onEnterKeyPress !== undefined && event.key === "Enter") {
@@ -33,10 +34,10 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
     setInputFocus(true);
   }
 
-  const handleInputBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+  const handleInputBlur = (event: React.FocusEvent<HTMLTextAreaElement>) => {
     const isValid = form.data[name].validation(event.target.value);
     form.setInvalid(name, !isValid);
-    
+
     if (event.target.value.trim() === "") {
       setInputFocus(false);
     } 
@@ -46,21 +47,21 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
     <div>
       <div
         className={dynamicClassNames(
-          form.data[name].invalid ? "TextInput--Invalid" : "",
-          "TextInput"
+          form.data[name].invalid ? "TextArea--Invalid" : "",
+          "TextArea"
         )}
       >
         <span 
           className={dynamicClassNames(
-            inputFocus ? "TextInput-key-shrink" : "",
-            "TextInput-key"
+            inputFocus ? "TextArea-key-shrink" : "",
+            "TextArea-key"
           )}
         >{title}</span>
 
-        <input
-          type={type}
+        <textarea
           name={name}
-          className="TextInput-element" 
+          rows={3}
+          className="TextArea-element" 
           value={form.data[name].value}
           placeholder=""
           ref={reference}
@@ -76,7 +77,13 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
         />
       </div>
 
-      {!form.data[name].invalid ? null : 
+      {!form.data[name].invalid ? 
+        !description ? null : 
+          <div className="flex items-center mt-2">
+            <InformationCircleIcon className="w-4 h-4 fill-gray-400" aria-hidden="true" />
+            <span className="block ml-1.5 text-sm text-gray-600">{ description }</span>
+          </div>
+      : 
         <div className="flex items-center mt-2">
           <ExclamationTriangleIcon className="w-4 h-4 fill-red-400" aria-hidden="true" />
           <span className="block ml-1.5 text-xs text-red-500">{ form.data[name].helperText ?? title + " cannot be empty." }</span>
@@ -86,4 +93,4 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
   )
 }
 
-export default TextInput;
+export default TextArea;
