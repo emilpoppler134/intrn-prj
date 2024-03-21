@@ -29,10 +29,11 @@ const BotListOverview: React.FC<BotListOverviewProps> = ({ bots }) => {
   }
 
   const handleNameEnterKeyPress = () => {
-    form.handleSubmit(handleCreateBot);
+    form.handleSubmit(handleCreate);
   }
 
-  const handleCreateBot = ({ name }: FormValues) => {
+  const handleCreate = ({ name }: FormValues) => {
+    // Temporary
     return new Promise<void>(() => {
       navigate("/bots/zzz-zzzz-zzzzzzz-zzzz/config");
       return;
@@ -134,7 +135,7 @@ const BotListOverview: React.FC<BotListOverviewProps> = ({ bots }) => {
                       <SubmitButton
                         text="Create"
                         form={form}
-                        onPress={handleCreateBot}
+                        onPress={handleCreate}
                       />
                     </div>
                     <div className="inline-flex w-full mt-3 sm:mt-0 sm:ml-3 sm:w-auto">
