@@ -1,15 +1,13 @@
 import React, { Fragment, ReactNode, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { UserIcon } from '@heroicons/react/24/solid';
 
-import { API_ADDRESS } from '../config';
 import { dynamicClassNames } from '../utils/dynamicClassNames';
 import { useAuth } from '../provider/authProvider';
-
 import ErrorAlert from './ErrorAlert';
+import { API_ADDRESS } from '../config';
 
 type Props = {
   children: ReactNode;
