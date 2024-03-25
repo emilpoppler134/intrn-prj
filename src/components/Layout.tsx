@@ -22,7 +22,7 @@ const navigation = [
 
 const Layout: React.FC<Props> = ({ children, title }) => {
   const navigate = useNavigate();
-  const { user, token, setToken } = useAuth();
+  const { user, setToken } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
 
@@ -32,26 +32,7 @@ const Layout: React.FC<Props> = ({ children, title }) => {
   }
 
   const handleLogout = async () => {
-    const response = await fetchLogout();
-
-    if (response === null) {
-      setError("Unable to sign out. Please try again later.")
-      return;
-    }
-
     setToken(null);
-  }
-
-  const fetchLogout = async (): Promise<true | null> => {
-    try {
-      const body = {
-        token
-      }
-
-      await axios.post(`${API_ADDRESS}/users/logout`, body);
-
-      return true;
-    } catch(err) { return null; }
   }
 
   if (user === undefined) {

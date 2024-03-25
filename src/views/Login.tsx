@@ -12,7 +12,7 @@ import Checkbox from '../components/Checkbox';
 import SubmitButton from '../components/SubmitButton';
 import TextInput from '../components/TextInput';
 
-type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
+type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { token: string; } }) | null;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ export default function Login() {
       return;
     }
 
-    setToken(response.data.accessToken);
+    setToken(response.data.token);
     navigate("/dashboard");
   }
 

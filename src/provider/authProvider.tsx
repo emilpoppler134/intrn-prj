@@ -15,7 +15,15 @@ type AuthProviderProps = {
   children: ReactElement;
 }
 
-type FindUserResponse = (Omit<ApiResponse, 'data'> & { data?: User }) | null;
+type ValidateTokenResponse = (Omit<ApiResponse, 'data'> & { data?: User }) | null;
+
+const validateToken = async (): Promise<ValidateTokenResponse> => {
+  try {
+    const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/validate-token`);
+
+    return response.data;
+  } catch(err) { return null; }
+}
 
 const AuthContext = createContext<AuthContextProps>(null);
 
@@ -29,24 +37,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    const fetchFindUser = async (): Promise<FindUserResponse> => {
-      try {
-        const body = {
-          mode: "AccessToken",
-          accessToken: token
-        }
-
-        const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/find`, body);
-        
-        return response.data;
-      } catch(err) { return null; }
-    }
-
     if (token) {
       axios.defaults.headers.common["Authorization"] = "Bearer " + token;
       localStorage.setItem('token', token);
 
-      fetchFindUser()
+      validateToken()
         .then(response => {
           if (response === null || response.status === ResponseStatus.ERROR || response.data === undefined) {
             setUser(null);
