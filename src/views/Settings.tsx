@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { UserCircleIcon, CreditCardIcon, ClipboardIcon, KeyIcon } from '@heroicons/react/24/solid'
 
-import Layout from "../components/Layout";
 import { dynamicClassNames } from '../utils/dynamicClassNames';
+import { Breadcrumb } from '../types/Breadcrumb';
+import Layout from "../components/Layout";
 
 enum SettingsPages {
   Account,
@@ -59,8 +60,12 @@ const navigation = [
 export default function Settings() {
   const [page, setPage] = useState<SettingsPages>(SettingsPages.Account);
 
+  const breadcrumb: Breadcrumb = [
+    { title: "Settings" }
+  ];
+
   return (
-    <Layout title="Settings">
+    <Layout breadcrumb={breadcrumb}>
       <div className="flex gap-4 w-full">
         <div className="flex w-full max-w-[20rem] flex-col rounded-xl bg-white bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">

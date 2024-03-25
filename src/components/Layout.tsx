@@ -1,24 +1,26 @@
 import React, { Fragment, ReactNode, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { UserIcon } from '@heroicons/react/24/solid';
+import { Bars3Icon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, UserIcon } from '@heroicons/react/24/solid';
 
 import { dynamicClassNames } from '../utils/dynamicClassNames';
 import { useAuth } from '../provider/authProvider';
 import ErrorAlert from './ErrorAlert';
 import { API_ADDRESS } from '../config';
+import { Breadcrumb } from '../types/Breadcrumb';
 
 type Props = {
   children: ReactNode;
-  title: string;
+  breadcrumb: Breadcrumb;
+  backgroundColor?: string;
 }
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', current: true }
 ]
 
-const Layout: React.FC<Props> = ({ children, title }) => {
+const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
   const navigate = useNavigate();
   const { user, setToken } = useAuth();
 
@@ -41,7 +43,7 @@ const Layout: React.FC<Props> = ({ children, title }) => {
 
   return (
     <>
-      <div className="min-h-full">
+      <div className="flex flex-col min-h-screen">
         <Disclosure as="nav" className="bg-gray-800">
           {({ open }) => (
             <>
@@ -190,13 +192,39 @@ const Layout: React.FC<Props> = ({ children, title }) => {
           )}
         </Disclosure>
 
-        <header className="bg-white shadow">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{ title }</h1>
-          </div>
-        </header>
-        <main>
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className={dynamicClassNames(
+          backgroundColor ? `bg-${backgroundColor}` : "",
+          "flex-1 flex flex-col overflow-auto"
+        )}>
+          <header className="bg-white shadow">
+            <div className="w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+              <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                <li className="inline-flex items-center">
+                  <Link to="/dashboard" className="inline-flex items-center hover:underline">
+                    <HomeIcon className="w-[20px] h-[20px] mr-2.5 fill-gray-700" aria-hidden="true" />
+                    <span className="text-base font-medium text-gray-700">Home</span>
+                  </Link>
+                </li>
+                {breadcrumb.map(item => (
+                  <li>
+                    <div className="flex items-center">
+                      <ChevronRightIcon className="w-4 h-4 mx-1 stroke-gray-400 stroke-2" aria-hidden="true" />
+
+                      {item.to ? 
+                        <Link to={item.to} className="ml-1 text-gray-700 hover:underline md:ml-2">
+                          <span className="text-base font-medium">{ item.title }</span>
+                        </Link>
+                      :
+                        <span className="ml-1 cursor-default text-base font-medium text-gray-500 md:ml-2 dark:text-gray-400">{ item.title }</span>
+                      }
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </header>
+
+          <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 [&>div]:w-full">
             { children }
           </div>
         </main>
