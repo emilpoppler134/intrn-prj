@@ -1,4 +1,4 @@
-import React, { RefObject, useState } from 'react';
+import React, { useState, RefObject, SVGProps } from 'react';
 
 import { dynamicClassNames } from '../utils/dynamicClassNames';
 import { FormHook } from '../hooks/useForm';
@@ -12,9 +12,11 @@ type Props = {
   autoFocus?: boolean;
   form: FormHook;
   onEnterKeyPress?: () => void;
+  RightButtonIcon?: React.FC<SVGProps<SVGElement>>;
+  onRightButtonPress?: () => void;
 }
 
-const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFocus, onEnterKeyPress }) => {
+const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFocus, onEnterKeyPress, RightButtonIcon, onRightButtonPress }) => {
   const [inputFocus, setInputFocus] = useState(autoFocus ?? false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +44,10 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
     } 
   }
 
+  const handleRightButtonPress = () => {
+    onRightButtonPress?.();
+  }
+
   return (
     <div>
       <div
@@ -50,30 +56,51 @@ const TextInput: React.FC<Props> = ({ name, type, title, reference, form, autoFo
           "TextInput"
         )}
       >
-        <span 
-          className={dynamicClassNames(
-            inputFocus ? "TextInput-key-shrink" : "",
-            "TextInput-key"
-          )}
-        >{title}</span>
+        <div className="TextInput-hover w-full h-full">
+          <span 
+            className={dynamicClassNames(
+              inputFocus ? "TextInput-key-shrink" : "",
+              "TextInput-key"
+            )}
+          >{title}</span>
 
-        <input
-          type={type}
-          name={name}
-          className="TextInput-element" 
-          value={form.data[name].value}
-          placeholder=""
-          ref={reference}
-          autoFocus={autoFocus}
-          autoCapitalize="off"
-          autoComplete="off"
-          spellCheck="false"
-          autoCorrect="off"
-          onChange={handleInputChange}
-          onKeyUp={handleInputKeyPress}
-          onFocus={handleInputFocus} 
-          onBlur={handleInputBlur}
-        />
+          <input
+            type={type}
+            name={name}
+            value={form.data[name].value}
+            placeholder=""
+            ref={reference}
+            autoFocus={autoFocus}
+            autoCapitalize="off"
+            autoComplete="off"
+            spellCheck="false"
+            autoCorrect="off"
+            onChange={handleInputChange}
+            onKeyUp={handleInputKeyPress}
+            onFocus={handleInputFocus} 
+            onBlur={handleInputBlur}
+            className={dynamicClassNames(
+              "TextInput-element",
+              RightButtonIcon ? "TextInput-element-with-icon" : ""
+            )}
+          />
+        </div>
+
+        {RightButtonIcon &&
+          <div className="absolute top-0 right-0 bottom-0">
+            <button 
+              className={dynamicClassNames(
+                onRightButtonPress ? "cursor-pointer hover:bg-gray-100" : "cursor-default",
+                "relative w-[44px] h-[44px] rounded-r-md"
+              )}
+              onClick={handleRightButtonPress}
+            >
+              <div className="grid place-items-center">
+                <RightButtonIcon className="block w-6 h-6 fill-gray-800" aria-hidden="true" />
+              </div>
+            </button>
+          </div>
+        }
       </div>
 
       {!form.data[name].invalid ? null : 

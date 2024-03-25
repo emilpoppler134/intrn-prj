@@ -37,7 +37,7 @@ const Checkbox: React.FC<Props> = ({ name, title, onChange }) => {
         >
           {!checked ? null :
             <div className="absolute inset-0 grid place-items-center">
-              <CheckIcon className="w-3 h-3 stroke-white" />
+              <CheckIcon className="w-3 h-3 stroke-white stroke-[4px]" />
             </div>
           }
         </div>

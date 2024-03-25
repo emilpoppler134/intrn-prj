@@ -45,6 +45,7 @@
 /* Text Input */
 
 .TextInput {
+  position: relative;
   width: 100%;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -55,17 +56,16 @@
   box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px 0 rgb(0 0 0 / 7%), 0 1px 1.5px 0 rgb(0 0 0 / 5%);
   color: rgba(26,26,26,.9);
   height: 44px;
-  position: relative;
   cursor: text;
   transition: box-shadow .08s ease-in;
 }
 
-.TextInput:focus-within {
+.TextInput:has(.TextInput-hover:focus-within) {
   box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(50 151 211 / 30%);
   z-index: 2;
 }
 
-.TextInput:focus-within .TextInput-key {
+.TextInput-hover:focus-within .TextInput-key {
   color: rgb(156, 201, 232);
 }
 
@@ -91,6 +91,10 @@
   border-radius: 6px;
   outline: none;
   font-size: 16px;
+}
+
+.TextInput-element-with-icon {
+  padding-right: 44px;
 }
 
 .TextInput .TextInput-key-shrink {
@@ -197,10 +201,4 @@
 
 .CustomButton--incomplete .CustomButton-Text {
   opacity: .6;
-}
-
-/* Checkbox */
-
-.checkbox svg path {
-  stroke-width: 4;
 }
