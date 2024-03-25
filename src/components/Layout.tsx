@@ -17,7 +17,7 @@ type Props = {
 }
 
 const navigation = [
-  { name: 'Overview', href: '/dashboard', current: true }
+  { name: 'Dashboard', href: '/dashboard', current: true }
 ]
 
 const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
