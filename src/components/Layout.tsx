@@ -206,7 +206,7 @@ const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
                   </Link>
                 </li>
                 {breadcrumb.map(item => (
-                  <li>
+                  <li key={item.title}>
                     <div className="flex items-center">
                       <ChevronRightIcon className="w-4 h-4 mx-1 stroke-gray-400 stroke-2" aria-hidden="true" />
 
