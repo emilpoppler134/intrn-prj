@@ -1,46 +1,45 @@
-import React, { Fragment, ReactNode, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
+import React, { Fragment, ReactNode } from 'react'
+import { Link } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { HomeIcon, UserIcon } from '@heroicons/react/24/solid';
 
-import { dynamicClassNames } from '../utils/dynamicClassNames';
-import { useAuth } from '../provider/authProvider';
-import ErrorAlert from './ErrorAlert';
 import { API_ADDRESS } from '../config';
+import { useAuth } from '../provider/authProvider';
+import { dynamicClassNames } from '../utils/dynamicClassNames';
+import { ErrorType } from '../types/ApiResponses';
 import { Breadcrumb } from '../types/Breadcrumb';
+import ErrorAlert from './ErrorAlert';
 
-type Props = {
-  children: ReactNode;
-  breadcrumb: Breadcrumb;
+type LayoutProps = {
+  children?: ReactNode;
+  breadcrumb: Breadcrumb | null;
   backgroundColor?: string;
+  error?: string | null;
+  onErrorClose?: () => void;
 }
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', current: true }
 ]
 
-const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
-  const navigate = useNavigate();
+const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, error, onErrorClose }) => {
   const { user, setToken } = useAuth();
-
-  const [error, setError] = useState<string | null>(null);
-
-  if (user === null) {
-    navigate("/login", { replace: true });
-    return null;
-  }
-
+  
   const handleLogout = async () => {
     setToken(null);
   }
 
-  if (user === undefined) {
-    return (
-      <div className="theme-spinner"></div>
-    )
+  const handleErrorClose = () => {
+    onErrorClose?.();
   }
 
+  if (breadcrumb === null) {
+    breadcrumb = [{ title: "Error" }];
+  }
+  
+  if (!user) return null;
+  
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -192,16 +191,13 @@ const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
           )}
         </Disclosure>
 
-        <main className={dynamicClassNames(
-          backgroundColor ? `bg-${backgroundColor}` : "",
-          "flex-1 flex flex-col overflow-auto"
-        )}>
+        <main className={`flex-1 flex flex-col overflow-auto bg-${backgroundColor || "gray-50"}`}>
           <header className="bg-white shadow">
             <div className="w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
               <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                 <li className="inline-flex items-center">
                   <Link to="/dashboard" className="inline-flex items-center hover:underline">
-                    <HomeIcon className="w-[20px] h-[20px] mr-2.5 fill-gray-700" aria-hidden="true" />
+                    <HomeIcon className="w-[20px] h-[20px] mr-3 fill-gray-700" aria-hidden="true" />
                     <span className="text-base font-medium text-gray-700">Home</span>
                   </Link>
                 </li>
@@ -229,8 +225,8 @@ const Layout: React.FC<Props> = ({ children, breadcrumb, backgroundColor }) => {
           </div>
         </main>
 
-        {error === null ? null :
-          <ErrorAlert message={error} onClose={() => setError(null)} />
+        {!error ? null :
+          <ErrorAlert message={error} onClose={handleErrorClose} />
         }
       </div>
     </>

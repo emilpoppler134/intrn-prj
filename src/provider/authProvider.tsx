@@ -75,7 +75,7 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (context === null) {
-    throw new Error("oj");
+    throw new Error("Something went wrong...");
   }
 
   return context;

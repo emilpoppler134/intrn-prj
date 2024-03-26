@@ -30,6 +30,7 @@ type FormPropList = Array<Array<FormPropItem>>;
 
 type FormPropItem = {
   key: string;
+  value?: string;
   helperText?: string;
   validation?: ((value: string) => boolean) | null;
 }
@@ -41,7 +42,7 @@ export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
     stage.forEach(item => {
       initialFormState[item.key] = {
         stage: index,
-        value: '',
+        value: item.value ?? '',
         invalid: false,
         helperText: item.helperText ?? null,
         validation: item.validation ?? item.validation === null ? (_) => true : defaultValidation
