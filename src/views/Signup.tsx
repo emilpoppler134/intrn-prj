@@ -1,18 +1,14 @@
 import { useRef, useState, MutableRefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosResponse } from 'axios';
 
-import { API_ADDRESS } from '../config';
-import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
-import { emailValidation } from '../utils/validation';
 import { useAuth } from '../provider/authProvider';
 import { useForm, FormValues, FormHook } from '../hooks/useForm';
+import { emailValidation } from '../utils/validation';
+import { callAPI } from '../utils/apiService';
+import { ResponseStatus, ErrorType, ValidDataResponse } from '../types/ApiResponses';
 import AuthLayout from '../components/AuthLayout';
 import SubmitButton from '../components/SubmitButton';
 import TextInput from '../components/TextInput';
-
-type SignupStatusResponse = ApiResponse | null;
-type SignupResponse = (Omit<ApiResponse, 'data'> & {data?: { accessToken: string; } }) | null;
 
 const descriptions: Array<string> = [
   "Please enter your full name and your email. We'll send a verification code to your email.",
@@ -180,7 +176,7 @@ export default function Signup() {
   const handleRequestSubmit = async ({ name, email }: FormValues) => {
     setError(null);
 
-    const response = await fetchSignupRequest(name, email);
+    const response = await callAPI("/users/signup-request", { name, email });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -223,7 +219,7 @@ export default function Signup() {
   const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
     setError(null);
 
-    const response = await fetchSignupConfirmation(email, code);
+    const response = await callAPI("/users/signup-confirmation", { email, code });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -260,7 +256,7 @@ export default function Signup() {
       return;
     }
 
-    const response = await fetchSignupSubmit(name, email, code, password);
+    const response = await callAPI<{ token: string; }>("/users/signup-submit", { name, email, code, password });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -301,46 +297,10 @@ export default function Signup() {
       }
     }
 
-    if (response.data === undefined) {
-      setError("Something went wrong.");
-      return;
-    }
+    const validDataResponse = response as ValidDataResponse & { token: string; };
 
-    setToken(response.data.accessToken);
+    setToken(validDataResponse.data.accessToken);
     navigate("/dashboard");
-  }
-
-  const fetchSignupRequest = async (name: string, email: string): Promise<SignupStatusResponse> => {
-    try {
-      const body = {
-        name, email
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-request`, body);
-      return response.data;
-    } catch(err) { return null; }
-  }
-
-  const fetchSignupConfirmation = async (email: string, code: string): Promise<SignupStatusResponse> => {
-    try {
-      const body = {
-        email, code
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-confirmation`, body);
-      return response.data;
-    } catch(err) { return null; }
-  }
-
-  const fetchSignupSubmit = async (name: string, email: string, code: string, password: string): Promise<SignupResponse> => {
-    try {
-      const body = {
-        name, email, code, password
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/signup-submit`, body);
-      return response.data;
-    } catch(err) { return null; }
   }
 
   return (

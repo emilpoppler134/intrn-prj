@@ -1,18 +1,15 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios, { AxiosResponse } from 'axios';
 
-import { API_ADDRESS } from '../config';
-import { ApiResponse, ResponseStatus, ErrorType } from '../types/ApiResponses';
-import { emailValidation } from '../utils/validation';
 import { useAuth } from '../provider/authProvider';
 import { useForm, FormValues } from '../hooks/useForm';
+import { emailValidation } from '../utils/validation';
+import { callAPI } from '../utils/apiService';
+import { ResponseStatus, ErrorType, ValidDataResponse } from '../types/ApiResponses';
 import AuthLayout from '../components/AuthLayout';
 import Checkbox from '../components/Checkbox';
 import SubmitButton from '../components/SubmitButton';
 import TextInput from '../components/TextInput';
-
-type LoginResponse = (Omit<ApiResponse, 'data'> & {data?: { token: string; } }) | null;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -45,7 +42,7 @@ export default function Login() {
   const handleLogin = async ({ email, password }: FormValues) => {
     setError(null);
 
-    const response = await fetchLogin(email, password);
+    const response = await callAPI<{ token: string; }>("/users/login", { email, password });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -81,24 +78,10 @@ export default function Login() {
       }
     }
 
-    if (response.data === undefined) {
-      setError("Something went wrong.");
-      return;
-    }
+    const validDataResponse = response as ValidDataResponse & { data: { token: string; } };
 
-    setToken(response.data.token);
+    setToken(validDataResponse.data.token);
     navigate("/dashboard");
-  }
-
-  const fetchLogin = async (email: string, password: string): Promise<LoginResponse> => {
-    try {
-      const body = {
-        email, password
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/login`, body);
-      return response.data;
-    } catch(err) { return null; }
   }
 
   return (

@@ -1,16 +1,13 @@
 import { MutableRefObject, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosResponse } from 'axios';
 
-import { API_ADDRESS } from '../config';
-import { emailValidation } from '../utils/validation';
 import { FormHook, FormValues, useForm } from '../hooks/useForm';
-import { ResponseStatus, ErrorType, ApiResponse } from '../types/ApiResponses';
+import { emailValidation } from '../utils/validation';
+import { ResponseStatus, ErrorType } from '../types/ApiResponses';
 import AuthLayout from '../components/AuthLayout';
 import SubmitButton from '../components/SubmitButton';
 import TextInput from '../components/TextInput';
-
-type ForgotPasswordResponse = ApiResponse | null;
+import { callAPI } from '../utils/apiService';
 
 const descriptions: Array<string> = [
   "Please enter the email associated with your account. We'll send a verification code to reset your password.",
@@ -155,8 +152,7 @@ export default function ForgotPassword() {
   const handleRequestSubmit = async ({ email }: FormValues) => {
     setError(null);
 
-    // const response = await fetchForgotPasswordRequest(email);
-    const response: ForgotPasswordResponse = { status: ResponseStatus.OK };
+    const response = await callAPI("/users/forgot-password-request", { email });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -198,8 +194,7 @@ export default function ForgotPassword() {
   const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
     setError(null);
 
-    // const response = await fetchForgotPasswordConfirmation(email, code);
-    const response: ForgotPasswordResponse = { status: ResponseStatus.OK };
+    const response = await callAPI("/users/forgot-password-confirmation", { email, code });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -236,8 +231,7 @@ export default function ForgotPassword() {
       return;
     }
 
-    // const response = await fetchForgotPasswordSubmit(email, code, password);
-    const response: ForgotPasswordResponse = { status: ResponseStatus.OK };
+    const response = await callAPI("/users/forgot-password-submit", { email, code, password });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -274,39 +268,6 @@ export default function ForgotPassword() {
     }
 
     navigate("/login");
-  }
-
-  const fetchForgotPasswordRequest = async (email: string): Promise<ForgotPasswordResponse> => {
-    try {
-      const body = {
-        email
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-request`, body);
-      return response.data;
-    } catch(err) { return null; }
-  }
-
-  const fetchForgotPasswordConfirmation = async (email: string, code: string): Promise<ForgotPasswordResponse> => {
-    try {
-      const body = {
-        email, code
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-confirmation`, body);
-      return response.data;
-    } catch(err) { return null; }
-  }
-
-  const fetchForgotPasswordSubmit = async (email: string, code: string, password: string): Promise<ForgotPasswordResponse> => {
-    try {
-      const body = {
-        email, code, password
-      }
-
-      const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/forgot-password-submit`, body);
-      return response.data;
-    } catch(err) { return null; }
   }
 
   return (
