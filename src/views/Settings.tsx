@@ -65,7 +65,7 @@ export default function Settings() {
   ];
 
   return (
-    <Layout breadcrumb={breadcrumb}>
+    <Layout breadcrumb={breadcrumb} backgroundColor="white">
       <div className="flex gap-4 w-full">
         <div className="flex w-full max-w-[20rem] flex-col rounded-xl bg-white bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">
