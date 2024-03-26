@@ -1,23 +1,67 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PaperClipIcon } from '@heroicons/react/24/solid'
 
 import { FormValues, useForm } from "../hooks/useForm";
+import { callAPI } from "../utils/apiService";
+import { Bot } from "../types/Bot";
+import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import { Breadcrumb } from "../types/Breadcrumb";
 import Layout from "../components/Layout";
 import TextInput from "../components/TextInput";
 import SubmitButton from "../components/SubmitButton";
 import CancelButton from "../components/CancelButton";
 import TextArea from "../components/TextArea";
 import PhotoUpload from "../components/PhotoUpload";
-import { Breadcrumb } from "../types/Breadcrumb";
+import Loading from "../components/Loading";
 
 export default function BotConfig() {
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  const [error, setError] = useState<string | null>(null);
+  const [bot, setBot] = useState<Bot | null | undefined>(undefined);  
 
   const form = useForm([[
     { key: "name" },
     { key: "personality", validation: null }
   ]]);
+
+  useEffect(() => {
+    callAPI<Bot>("/bots/find", { id })
+      .then(response => {
+        if (response === null) {
+          setError("Something went wrong.");
+          setBot(null);
+          return;
+        }
+
+        if (response.status === ResponseStatus.ERROR) {
+          setBot(null);
+
+          switch (response.error) {
+            case ErrorType.INVALID_PARAMS: {
+              setError("Invalid id.");
+              return;
+            }
+    
+            case ErrorType.NO_RESULT: {
+              setError("No bot with that Id.");
+              return;
+            }
+    
+            default: {
+              setError("Something went wrong.");
+              return;
+            }
+          }
+        }
+
+        const validDataResponse = response as ValidDataResponse & { data: Bot };
+
+        setBot(validDataResponse.data);
+      });
+  }, [id]);
 
   const handleCancel = () => {
     navigate("/dashboard");
@@ -30,8 +74,11 @@ export default function BotConfig() {
     })
   }
 
+  if (bot === null) return <Layout breadcrumb={null} error={error} />;
+  if (bot === undefined) return <Loading />;
+
   const breadcrumb: Breadcrumb = [
-    { title: "Bot Karin", to: `/bots/${id}/config` },
+    { title: bot.name, to: `/bots/${id}` },
     { title: "Config" }
   ];
 
