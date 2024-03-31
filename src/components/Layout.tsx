@@ -1,5 +1,5 @@
-import React, { Fragment, ReactNode } from 'react'
-import { Link } from 'react-router-dom';
+import React, { Fragment, ReactNode, useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { HomeIcon, UserIcon } from '@heroicons/react/24/solid';
@@ -7,9 +7,13 @@ import { HomeIcon, UserIcon } from '@heroicons/react/24/solid';
 import { API_ADDRESS } from '../config';
 import { useAuth } from '../provider/authProvider';
 import { dynamicClassNames } from '../utils/dynamicClassNames';
-import { ErrorType } from '../types/ApiResponses';
 import { Breadcrumb } from '../types/Breadcrumb';
 import ErrorAlert from './ErrorAlert';
+import Notification, { NotificationProps } from './Notification';
+
+type StateErrorProps = {
+  message: string;
+}
 
 type LayoutProps = {
   children?: ReactNode;
@@ -24,8 +28,21 @@ const navigation = [
 ]
 
 const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, error, onErrorClose }) => {
+  const { state } = useLocation();
   const { user, setToken } = useAuth();
-  
+
+  const [notification, setNotification] = useState<NotificationProps | null>(null);
+  const [stateError, setStateError] = useState<StateErrorProps | null>(null);
+
+  useEffect(() => {
+    if (state) {
+      if (state.notification) setNotification(state.notification);
+      if (state.error) setStateError(state.error);
+
+      window.history.replaceState({}, '');
+    }
+  }, [state]);
+
   const handleLogout = async () => {
     setToken(null);
   }
@@ -43,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
   return (
     <>
       <div className="flex flex-col min-h-screen">
-        <Disclosure as="nav" className="bg-gray-800">
+        <Disclosure as="nav" className="bg-gray-800 z-20">
           {({ open }) => (
             <>
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -192,7 +209,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
         </Disclosure>
 
         <main className={`flex-1 flex flex-col overflow-auto bg-${backgroundColor || "gray-50"}`}>
-          <header className="bg-white shadow">
+          <header className="bg-white shadow z-10">
             <div className="w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
               <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                 <li className="inline-flex items-center">
@@ -228,6 +245,18 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
         {!error ? null :
           <ErrorAlert message={error} onClose={handleErrorClose} />
         }
+
+        {!stateError ? null :
+          <ErrorAlert message={stateError.message} onClose={() => setStateError(null)} />
+        }
+
+        {!notification ? null :
+          <Notification
+            title={notification.title}
+            message={notification.message}
+          />
+        }
+
       </div>
     </>
   )
