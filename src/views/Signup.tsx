@@ -190,7 +190,7 @@ export default function Signup() {
           return;
         }
 
-        case ErrorType.USER_EXISTS: {
+        case ErrorType.ALREADY_EXISTING: {
           setError("That email is already in use. Please try signing in, or use a different email.");
           return;
         }
@@ -270,7 +270,7 @@ export default function Signup() {
           return;
         }
 
-        case ErrorType.USER_EXISTS: {
+        case ErrorType.ALREADY_EXISTING: {
           setError("That email is already in use. Please try signing in, or use a different email.");
           return;
         }

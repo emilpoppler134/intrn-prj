@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import PublicLayout from "../components/PublicLayout";
 
-const NotFound: React.FC = () => {
+export default function NotFound() {
   return (
     <PublicLayout>
       <div className="text-center pt-12">
@@ -27,5 +27,3 @@ const NotFound: React.FC = () => {
     </PublicLayout>
   )
 }
-
-export default NotFound;

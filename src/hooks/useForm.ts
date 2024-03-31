@@ -35,7 +35,7 @@ type FormPropItem = {
   validation?: ((value: string) => boolean) | null;
 }
 
-export const useForm = (fields: FormPropList, step: number = 0): FormHook => {
+export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook => {
   const initialFormState: FormData = {};
 
   fields.forEach((stage, index) => {
