@@ -1,16 +1,19 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedSubscriptionRoute } from "./components/ProtectedSubscriptionRoute";
 
-import Startpage from "./views/Startpage";
-import Login from "./views/Login";
-import Signup from "./views/Signup";
-import ForgotPassword from "./views/ForgotPassword";
-import Dashboard from "./views/Dashboard";
-import NotFound from "./views/NotFound";
 import BotChat from "./views/BotChat";
 import BotConfig from "./views/BotConfig";
+import Dashboard from "./views/Dashboard";
+import ForgotPassword from "./views/ForgotPassword";
+import Login from "./views/Login";
+import NotFound from "./views/NotFound";
+import Payment from "./views/Payment";
 import Settings from "./views/Settings";
+import Signup from "./views/Signup";
+import Startpage from "./views/Startpage";
+import Subscriptions from "./views/Subscriptions";
 
 const Routes = () => {
   // Define public routes accessible to all users
@@ -45,17 +48,35 @@ const Routes = () => {
           element: <Dashboard />,
         },
         {
+          path: "/subscriptions",
+          element: <Subscriptions />,
+        },
+        {
+          path: "/subscriptions/payment",
+          element: <Payment />,
+        },
+        {
+          path: "/subscriptions/payment/result",
+          element: <Payment />,
+        },
+        {
           path: "/settings",
           element: <Settings />,
         },
         {
-          path: "/bots/:id",
-          element: <BotChat />,
-        },
-        {
-          path: "/bots/:id/config",
-          element: <BotConfig />,
-        },
+          path: "/",
+          element: <ProtectedSubscriptionRoute />,
+          children: [
+            {
+              path: "/bots/:id",
+              element: <BotChat />,
+            },
+            {
+              path: "/bots/:id/config",
+              element: <BotConfig />,
+            },
+          ]
+        }
       ],
     },
   ];

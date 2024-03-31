@@ -1,28 +1,19 @@
-import { ReactElement, createContext, useContext, useEffect, useMemo, useState } from "react";
-import axios, { AxiosResponse } from 'axios';
+import { ReactElement, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import axios from 'axios';
 
-import { API_ADDRESS } from "../config";
-import { ApiResponse, ResponseStatus } from "../types/ApiResponses";
+import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
 import { User } from '../types/User';
+import { callAPI } from "../utils/apiService";
 
 type AuthContextProps = {
   token: string | null;
   user: User | null | undefined;
   setToken: (newToken: string | null) => void;
+  signNewToken: () => Promise<void>;
 } | null;
 
 type AuthProviderProps = {
   children: ReactElement;
-}
-
-type ValidateTokenResponse = (Omit<ApiResponse, 'data'> & { data?: User }) | null;
-
-const validateToken = async (): Promise<ValidateTokenResponse> => {
-  try {
-    const response: AxiosResponse = await axios.post(`${API_ADDRESS}/users/validate-token`);
-
-    return response.data;
-  } catch(err) { return null; }
 }
 
 const AuthContext = createContext<AuthContextProps>(null);
@@ -31,24 +22,21 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, _setToken] = useState<string | null>(localStorage.getItem("token"));
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
-  const setToken = (newToken: string | null) => {
-    _setToken(newToken);
-    setUser(undefined);
-  }
-
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = "Bearer " + token;
       localStorage.setItem('token', token);
 
-      validateToken()
+      callAPI<User>("/users/validate-token")
         .then(response => {
-          if (response === null || response.status === ResponseStatus.ERROR || response.data === undefined) {
+          if (response === null || response.status === ResponseStatus.ERROR) {
             setUser(null);
             return;
           }
 
-          setUser(response.data);
+          const validDataResponse = response as ValidDataResponse & { data: User };
+
+          setUser(validDataResponse.data);
         });
     } else {
       delete axios.defaults.headers.common["Authorization"];
@@ -57,13 +45,32 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [token]);
 
+  const setToken = (newToken: string | null) => {
+    _setToken(newToken);
+    setUser(undefined);
+  }
+
+  const signNewToken = useCallback(async () => {
+    const response = await callAPI<{ token: string; }>("/users/sign-new-token");
+
+    if (response === null || response.status === ResponseStatus.ERROR) {
+      setUser(null);
+      return;
+    }
+
+    const validDataResponse = response as ValidDataResponse & { data: { token: string; } };
+
+    setToken(validDataResponse.data.token);
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       token,
       user,
       setToken,
+      signNewToken
     }),
-    [token, user]
+    [token, user, signNewToken]
   );
 
   return (

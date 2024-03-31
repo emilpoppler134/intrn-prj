@@ -19,6 +19,9 @@ export async function callAPI<T>(url: string, body?: Body): Promise<ValidRespons
         localStorage.removeItem("token");
         window.location.href = "/login";
       }
+      if (response.error === ErrorType.NO_SUBSCRIPTION) {
+        window.location.href = "/dashboard";
+      }
       return { status: ResponseStatus.ERROR, error: response.error } as ErrorResponse;
     }
 

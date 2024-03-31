@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { UserIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 
-import { callAPI } from "../utils/apiService";
+import { useAuth } from "../provider/authProvider";
 import { useForm, FormValues } from '../hooks/useForm';
+import { callAPI } from "../utils/apiService";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
@@ -13,9 +14,11 @@ import BotItem from "../components/BotItem";
 import TextInput from '../components/TextInput';
 import Modal from "../components/Modal";
 import Loading from "../components/Loading";
+import WarningAlert from "../components/WarningAlert";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [open, setOpen] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,12 @@ export default function Dashboard() {
     { key: "name" }
   ]]);
 
-  useEffect(() => {  
+  useEffect(() => {
+    if (user === null || user === undefined || user.subscription.status === null) {
+      setBots([]);
+      return;
+    }
+
     callAPI<Array<Bot>>("/bots/list")
       .then(response => {
         if (response === null || response.status === ResponseStatus.ERROR) {
@@ -38,9 +46,16 @@ export default function Dashboard() {
 
         setBots(validDataResponse.data);
       });
-  }, []);
+  }, [user]);
+
+  if (!user) return null;
 
   const handleOpen = () => {
+    if (user.subscription.status === null) {
+      setError("You need a subscription to create a bot.")
+      return;
+    }
+
     setOpen(true);
   }
 
@@ -139,6 +154,10 @@ export default function Dashboard() {
             onEnterKeyPress={handleEnterKeyPress}
           />
         </Modal>
+
+        {user.subscription.status === null && 
+          <WarningAlert message="You dont have a subscription yet." link={{ title: "Start a subscription.", to: "/subscriptions" }} />
+        }
       </div>
     </Layout>
   )
