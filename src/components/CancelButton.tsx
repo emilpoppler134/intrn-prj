@@ -20,11 +20,11 @@ const CancelButton: React.FC<CancelButtonProps> = ({ text, reference, onPress, f
       "w-full"
     )}>
       <button 
-        className="CustomButton bg-white hover:bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-4 focus:outline-none focus:ring-primary-300"
+        className="w-full px-4 py-2 rounded-md shadow-sm bg-white hover:bg-gray-100 ring-1 ring-inset ring-gray-300 focus:ring-4 focus:ring-primary-300"
         onClick={onButtonClick}
         ref={reference}
       >
-        <span className="CustomButton-Text text-gray-700">{text}</span>
+        <span className="text-sm font-semibold text-gray-700 pointer-events-none">{text}</span>
       </button>
     </div>
   )

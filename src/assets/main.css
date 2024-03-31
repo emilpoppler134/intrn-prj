@@ -30,18 +30,6 @@
   }
 }
 
-/* Error Alert */
-
-.error-alert {
-  min-width: min(100% - 40px, 480px);
-  width: auto;
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
-
 /* Text Input */
 
 .TextInput {
@@ -175,30 +163,4 @@
 
 .TextArea--Invalid .TextArea-key {
   color: rgb(232 156 156);
-}
-
-/* Custom Button */
-
-.CustomButton {
-  position: relative;
-  width: 100%;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  height: 40px;
-  padding: 0 12px;
-}
-
-.CustomButton--incomplete {
-  pointer-events: none;
-}
-
-.CustomButton-Text {
-  font-weight: 500;
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.CustomButton--incomplete .CustomButton-Text {
-  opacity: .6;
 }

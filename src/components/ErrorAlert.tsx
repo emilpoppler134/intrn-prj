@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { XCircleIcon } from '@heroicons/react/24/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 type Props = {
@@ -13,16 +13,24 @@ const ErrorAlert: React.FC<Props> = ({ message, onClose }) => {
   }
 
   return (
-    <div className="error-alert">
-      <div className="flex items-center bg-red-100 border border-red-400 text-red-700 pl-4 pr-16 py-3 rounded relative" role="alert">
-        <ExclamationTriangleIcon className="mr-2 w-5 h-5 fill-red-500" />
-        <span className="block sm:inline">{message}</span>
-        <button
-          className="absolute top-0 bottom-0 right-0 px-4 py-2"
-          onClick={handleButtonClick}
-        >
-          <XMarkIcon className="h-6 w-6 fill-red-500" />
-        </button>
+    <div className="fixed top-4 left-2/4 translate-x-[-50%] w-full max-w-xl z-30">
+      <div className="p-4 shadow-lg bg-red-50 border-l-4 border-red-400">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <XCircleIcon className="w-5 h-5 fill-red-400" aria-hidden="true" />
+          </div>
+          <div className="ml-3">
+            <span className="block text-sm text-red-700">
+              <span>{message}</span>
+            </span>
+          </div>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-2"
+            onClick={handleButtonClick}
+          >
+            <XMarkIcon className="h-6 w-6 stroke-red-500" />
+          </button>
+        </div>
       </div>
     </div>
   );
