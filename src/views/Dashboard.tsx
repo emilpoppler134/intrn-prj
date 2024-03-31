@@ -156,7 +156,7 @@ export default function Dashboard() {
         </Modal>
 
         {user.subscription.status === null && 
-          <WarningAlert message="You dont have a subscription yet." link={{ title: "Start a subscription.", to: "/subscriptions" }} />
+          <WarningAlert message="You dont have a subscription." link={{ title: "Start a subscription.", to: "/subscriptions" }} />
         }
       </div>
     </Layout>
