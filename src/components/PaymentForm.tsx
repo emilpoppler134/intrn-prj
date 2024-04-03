@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 
+import { APP_ADDRESS } from '../config';
 import { useForm } from '../hooks/useForm';
 import { Product } from '../types/Product';
 import SubmitButton from './SubmitButton';
@@ -24,7 +25,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ product }) => {
     const response = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `http://localhost:3000/subscriptions/payment/result?productId=${product.id}`,
+        return_url: `${APP_ADDRESS}/subscriptions/payment/result?productId=${product.id}`,
       }
     });
 
