@@ -20,7 +20,7 @@ export default function BotConfig() {
   const { id } = useParams();
 
   const [error, setError] = useState<string | null>(null);
-  const [bot, setBot] = useState<Bot | null | undefined>(undefined);  
+  const [bot, setBot] = useState<Bot | null | undefined>(undefined);
 
   const form = useForm([[
     { key: "name" },
@@ -64,6 +64,7 @@ export default function BotConfig() {
   }, [id]);
 
   const handleCancel = () => {
+    form.clearData();
     navigate("/dashboard");
   }
 
@@ -84,8 +85,8 @@ export default function BotConfig() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="flex flex-col">
-        <div className="space-y-12">
+      <div className="w-full max-w-4xl mx-auto rounded-lg bg-white p-10 ring-1 ring-inset ring-gray-900/5">
+        <div className="flex flex-col space-y-12">
           <div className="border-b border-gray-900/10 pb-12">
             <h2 className="text-base font-semibold leading-7 text-gray-900">Profile</h2>
             <span className="block mt-1 text-sm leading-6 text-gray-600">Here you can configure how the bot will behave.</span>

@@ -8,7 +8,7 @@ import { useForm, FormValues } from '../hooks/useForm';
 import { callAPI } from "../utils/apiService";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
 import Layout from "../components/Layout";
 import BotItem from "../components/BotItem";
 import TextInput from '../components/TextInput';
@@ -68,12 +68,36 @@ export default function Dashboard() {
     form.handleSubmit(handleCreate);
   }
 
-  const handleCreate = ({ name }: FormValues) => {
-    // Temporary
-    return new Promise<void>(() => {
-      navigate("/bots/zzz-zzzz-zzzzzzz-zzzz/config");
+  const handleCreate = async ({ name }: FormValues) => {
+    const response = await callAPI<{ id: string; }>("/bots/create", { name });
+
+    if (response === null) {
+      setError("Something went wrong.");
       return;
-    })
+    }
+
+    if (response.status === ResponseStatus.ERROR) {
+      switch (response.error) {
+        case ErrorType.ALREADY_EXISTING: {
+          form.setInvalid("name", true, "That name already exists");
+          return;
+        }
+
+        default: {
+          setError("Something went wrong.");
+          return;
+        }
+      }
+    }
+
+    const validDataResponse = response as ValidDataResponse & { data: { id: string } };
+
+    const notification = {
+      title: "Success!",
+      message: "You have created a new bot."
+    }
+
+    navigate(`/bots/${validDataResponse.data.id}/config`, { state: { notification }});
   }
 
   const breadcrumb: Breadcrumb = [
@@ -105,6 +129,9 @@ export default function Dashboard() {
                   onClick={handleOpen}
                 >
                   <div className="flex flex-col">
+                    <div className="mb-1">
+                      <span className="text-base text-gray-700 text-opacity-0">‎</span>
+                    </div>
                     <div className="relative pb-[100%] outline outline-2 outline-gray-300">
                       <div className="absolute-center p-4">
                         <PlusIcon className="w-12 h-12 fill-gray-700" aria-hidden="true" />

@@ -12,6 +12,9 @@ const BotItem: React.FC<BotItemProps> = ({ bot }) => {
   return (
     <div className="flex flex-col">
       <Link to={`/bots/${bot._id}`} className="group">
+        <div className="mb-1">
+          <span className="text-base text-gray-700">{ bot.name }</span>
+        </div>
         <div className="flex flex-col">
           <div className="relative pb-[100%] outline outline-2 outline-gray-300">
             <div className="absolute-center w-full h-full p-4">

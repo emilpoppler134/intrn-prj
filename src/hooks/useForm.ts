@@ -7,7 +7,7 @@ export type FormHook = {
   loading: boolean;
   clearData: () => void;
   setValue: (key: string, value: string) => void;
-  setInvalid: (key: string, invalid: boolean) => void;
+  setInvalid: (key: string, invalid: boolean, helperText?: string) => void;
   validateForm: () => true | Array<string>;
   handleSubmit: (callback: (formValues: FormValues) => Promise<void>) => Promise<void>;
 };
@@ -76,11 +76,12 @@ export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook
     }));
   };
 
-  const setInvalid = (key: string, invalid: boolean) => {
+  const setInvalid = (key: string, invalid: boolean, helperText?: string) => {
     setData(prevState => ({
       ...prevState,
       [key]: {
         ...prevState[key],
+        helperText: helperText === undefined ? prevState[key].helperText : helperText,
         invalid
       }
     }));
