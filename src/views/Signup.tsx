@@ -1,20 +1,19 @@
-import { useRef, useState, MutableRefObject } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-import { useAuth } from '../provider/authProvider';
-import { useForm, FormValues, FormHook } from '../hooks/useForm';
-import { emailValidation } from '../utils/validation';
-import { callAPI } from '../utils/apiService';
-import { ResponseStatus, ErrorType, ValidDataResponse } from '../types/ApiResponses';
-import AuthLayout from '../components/AuthLayout';
-import SubmitButton from '../components/SubmitButton';
-import TextInput from '../components/TextInput';
+import { MutableRefObject, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SubmitButton from "../components/SubmitButton";
+import TextInput from "../components/TextInput";
+import AuthLayout from "../components/layouts/AuthLayout";
+import { FormHook, FormValues, useForm } from "../hooks/useForm";
+import { useAuth } from "../provider/authProvider";
+import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import { callAPI } from "../utils/apiService";
+import { emailValidation } from "../utils/validation";
 
 const descriptions: Array<string> = [
   "Please enter your full name and your email. We'll send a verification code to your email.",
   "Check your email inbox for a verification code. Enter the code below to proceed with creating your account.",
-  "Enter a new password for your account."
-]
+  "Enter a new password for your account.",
+];
 
 type StepProps = {
   onConfirmationSubmit: (values: FormValues) => Promise<void>;
@@ -24,135 +23,78 @@ type StepProps = {
   reenteredPasswordInputRef: MutableRefObject<HTMLInputElement | null>;
   form: FormHook;
   step: number;
-}
+};
 
-const Steps: React.FC<StepProps> = ({
-  onConfirmationSubmit,
-  onRequestSubmit,
-  onSignupSubmit,
-  emailInputRef,
-  reenteredPasswordInputRef,
-  form,
-  step
-}) => {
+const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onSignupSubmit, emailInputRef, reenteredPasswordInputRef, form, step }) => {
   switch (step) {
     case 0: {
       const handleNameEnterKeyPress = async () => {
         emailInputRef?.current?.focus();
-      }
+      };
 
       const handleEmailEnterKeyPress = async () => {
         await form.handleSubmit(onRequestSubmit);
-      }
+      };
 
       return (
         <>
-          <TextInput 
-            name="name"
-            key="name"
-            type="text"
-            title="Name"
-            form={form}
-            onEnterKeyPress={handleNameEnterKeyPress}
-          />
+          <TextInput name="name" key="name" type="text" title="Name" form={form} onEnterKeyPress={handleNameEnterKeyPress} />
 
-          <TextInput 
-            name="email"
-            key="email"
-            type="text"
-            title="Email"
-            reference={emailInputRef}
-            form={form}
-            onEnterKeyPress={handleEmailEnterKeyPress}
-          />
+          <TextInput name="email" key="email" type="text" title="Email" reference={emailInputRef} form={form} onEnterKeyPress={handleEmailEnterKeyPress} />
 
-          <SubmitButton
-            text="Next"
-            form={form}
-            onPress={onRequestSubmit}
-          />
+          <SubmitButton text="Next" form={form} onPress={onRequestSubmit} />
         </>
-      )
+      );
     }
 
     case 1: {
       const handleCodeEnterKeyPress = async () => {
         await form.handleSubmit(onConfirmationSubmit);
-      }
+      };
 
       return (
         <>
-          <TextInput
-            name="code"
-            key="code"
-            type="text"
-            title="Verification code"
-            form={form}
-            onEnterKeyPress={handleCodeEnterKeyPress}
-          />
+          <TextInput name="code" key="code" type="text" title="Verification code" form={form} onEnterKeyPress={handleCodeEnterKeyPress} />
 
-          <SubmitButton
-            text="Next"
-            form={form}
-            onPress={onConfirmationSubmit}
-          />
+          <SubmitButton text="Next" form={form} onPress={onConfirmationSubmit} />
         </>
-      )
+      );
     }
 
     case 2: {
       const handlePasswordEnterKeyPress = async () => {
         reenteredPasswordInputRef?.current?.focus();
-      }
+      };
 
       const handleReenteredPasswordEnterKeyPress = async () => {
         await form.handleSubmit(onSignupSubmit);
-      }
+      };
 
       return (
         <>
-          <TextInput
-            name="password"
-            key="password"
-            type="password"
-            title="New password"
-            form={form}
-            onEnterKeyPress={handlePasswordEnterKeyPress}
-          />
+          <TextInput name="password" key="password" type="password" title="New password" form={form} onEnterKeyPress={handlePasswordEnterKeyPress} />
 
-          <TextInput
-            name="reenteredPassword"
-            key="reenteredPassword"
-            type="password"
-            title="Re-enter new password"
-            reference={reenteredPasswordInputRef}
-            form={form}
-            onEnterKeyPress={handleReenteredPasswordEnterKeyPress}
-          />
+          <TextInput name="reenteredPassword" key="reenteredPassword" type="password" title="Re-enter new password" reference={reenteredPasswordInputRef} form={form} onEnterKeyPress={handleReenteredPasswordEnterKeyPress} />
 
-          <SubmitButton
-            text="Save"
-            form={form}
-            onPress={onSignupSubmit}
-          />
+          <SubmitButton text="Save" form={form} onPress={onSignupSubmit} />
         </>
-      )
+      );
     }
-    
+
     default: {
       return (
         <>
           <span className="text-base font-medium text-gray-700">Something went wrong.</span>
         </>
-      )
+      );
     }
   }
-}
+};
 
 export default function Signup() {
   const navigate = useNavigate();
   const { setToken } = useAuth();
-  
+
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showGoogleSignup, setShowGoogleSignup] = useState<boolean>(true);
@@ -162,16 +104,23 @@ export default function Signup() {
 
   const form = useForm(
     [
-      [{ key: "name" }, { key: "email", helperText: "Enter a valid email.", validation: emailValidation }],
+      [
+        { key: "name" },
+        {
+          key: "email",
+          helperText: "Enter a valid email.",
+          validation: emailValidation,
+        },
+      ],
       [{ key: "code" }],
-      [{ key: "password" }, { key: "reenteredPassword" }]
+      [{ key: "password" }, { key: "reenteredPassword" }],
     ],
     step
   );
 
   const onGoogleAuthSignup = () => {
     console.log("User requested to signup with google");
-  }
+  };
 
   const handleRequestSubmit = async ({ name, email }: FormValues) => {
     setError(null);
@@ -214,12 +163,15 @@ export default function Signup() {
 
     setShowGoogleSignup(false);
     setStep(1);
-  }
+  };
 
   const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
     setError(null);
 
-    const response = await callAPI("/users/signup-confirmation", { email, code });
+    const response = await callAPI("/users/signup-confirmation", {
+      email,
+      code,
+    });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -246,7 +198,7 @@ export default function Signup() {
     }
 
     setStep(2);
-  }
+  };
 
   const handleSignupSubmit = async ({ name, email, code, password, reenteredPassword }: FormValues) => {
     setError(null);
@@ -256,7 +208,12 @@ export default function Signup() {
       return;
     }
 
-    const response = await callAPI<{ token: string; }>("/users/signup-submit", { name, email, code, password });
+    const response = await callAPI<{ token: string }>("/users/signup-submit", {
+      name,
+      email,
+      code,
+      password,
+    });
 
     if (response === null) {
       setError("Something went wrong when the request was sent.");
@@ -297,31 +254,15 @@ export default function Signup() {
       }
     }
 
-    const validDataResponse = response as ValidDataResponse & { token: string; };
+    const validDataResponse = response as ValidDataResponse & { token: string };
 
     setToken(validDataResponse.data.accessToken);
     navigate("/dashboard");
-  }
+  };
 
   return (
-    <AuthLayout
-      description={descriptions[step]}
-      error={error}
-      onErrorClose={() => setError(null)}
-      onGoogleAuthClick={onGoogleAuthSignup}
-      page="signup"
-      showGoogleAuth={showGoogleSignup}
-      title="Create a new account"
-    >
-      <Steps
-        onRequestSubmit={handleRequestSubmit}
-        onConfirmationSubmit={handleConfirmationSubmit}
-        onSignupSubmit={handleSignupSubmit}
-        emailInputRef={emailInputRef}
-        reenteredPasswordInputRef={reenteredPasswordInputRef}
-        form={form}
-        step={step}
-      />
+    <AuthLayout description={descriptions[step]} error={error} onErrorClose={() => setError(null)} onGoogleAuthClick={onGoogleAuthSignup} page="signup" showGoogleAuth={showGoogleSignup} title="Create a new account">
+      <Steps onRequestSubmit={handleRequestSubmit} onConfirmationSubmit={handleConfirmationSubmit} onSignupSubmit={handleSignupSubmit} emailInputRef={emailInputRef} reenteredPasswordInputRef={reenteredPasswordInputRef} form={form} step={step} />
     </AuthLayout>
-  )
+  );
 }

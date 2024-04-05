@@ -1,16 +1,16 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 type WarningAlertProps = {
   message: string;
   link?: LinkProps;
-}
+};
 
 type LinkProps = {
   title: string;
   to: string;
-}
+};
 
 const WarningAlert: React.FC<WarningAlertProps> = ({ message, link }) => {
   return (
@@ -22,19 +22,19 @@ const WarningAlert: React.FC<WarningAlertProps> = ({ message, link }) => {
           </div>
           <div className="ml-3">
             <span className="block text-sm text-yellow-700">
-              <span>{ message }</span>
+              <span>{message}</span>
 
-              {!link ? null :
+              {!link ? null : (
                 <Link to={link.to} className="ml-1.5">
-                  <span className="underline font-medium">{ link.title }</span>
+                  <span className="underline font-medium">{link.title}</span>
                 </Link>
-              }
+              )}
             </span>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default WarningAlert;

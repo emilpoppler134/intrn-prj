@@ -1,5 +1,4 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ProtectedSubscriptionRoute } from "./components/ProtectedSubscriptionRoute";
 
@@ -21,7 +20,7 @@ const Routes = () => {
     {
       path: "/",
       element: <Startpage />,
-      errorElement: <NotFound />
+      errorElement: <NotFound />,
     },
     {
       path: "/login",
@@ -75,16 +74,13 @@ const Routes = () => {
               path: "/bots/:id/config",
               element: <BotConfig />,
             },
-          ]
-        }
+          ],
+        },
       ],
     },
   ];
 
-  const router = createBrowserRouter([
-    ...routesForPublic,
-    ...authenticatedRoutes,
-  ]);
+  const router = createBrowserRouter([...routesForPublic, ...authenticatedRoutes]);
 
   return <RouterProvider router={router} />;
 };

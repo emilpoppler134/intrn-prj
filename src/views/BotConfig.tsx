@@ -1,19 +1,18 @@
+import { PaperClipIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PaperClipIcon } from '@heroicons/react/24/solid'
-
-import { FormValues, useForm } from "../hooks/useForm";
-import { callAPI } from "../utils/apiService";
-import { Bot } from "../types/Bot";
-import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
-import { Breadcrumb } from "../types/Breadcrumb";
-import Layout from "../components/Layout";
-import TextInput from "../components/TextInput";
-import SubmitButton from "../components/SubmitButton";
 import CancelButton from "../components/CancelButton";
-import TextArea from "../components/TextArea";
-import PhotoUpload from "../components/PhotoUpload";
 import Loading from "../components/Loading";
+import PhotoUpload from "../components/PhotoUpload";
+import SubmitButton from "../components/SubmitButton";
+import TextArea from "../components/TextArea";
+import TextInput from "../components/TextInput";
+import Layout from "../components/layouts/Layout";
+import { FormValues, useForm } from "../hooks/useForm";
+import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import { Bot } from "../types/Bot";
+import { Breadcrumb } from "../types/Breadcrumb";
+import { callAPI } from "../utils/apiService";
 
 export default function BotConfig() {
   const navigate = useNavigate();
@@ -22,66 +21,59 @@ export default function BotConfig() {
   const [error, setError] = useState<string | null>(null);
   const [bot, setBot] = useState<Bot | null | undefined>(undefined);
 
-  const form = useForm([[
-    { key: "name" },
-    { key: "personality", validation: null }
-  ]]);
+  const form = useForm([[{ key: "name" }, { key: "personality", validation: null }]]);
 
   useEffect(() => {
-    callAPI<Bot>("/bots/find", { id })
-      .then(response => {
-        if (response === null) {
-          setError("Something went wrong.");
-          setBot(null);
-          return;
-        }
+    callAPI<Bot>("/bots/find", { id }).then((response) => {
+      if (response === null) {
+        setError("Something went wrong.");
+        setBot(null);
+        return;
+      }
 
-        if (response.status === ResponseStatus.ERROR) {
-          setBot(null);
+      if (response.status === ResponseStatus.ERROR) {
+        setBot(null);
 
-          switch (response.error) {
-            case ErrorType.INVALID_PARAMS: {
-              setError("Invalid id.");
-              return;
-            }
-    
-            case ErrorType.NO_RESULT: {
-              setError("No bot with that Id.");
-              return;
-            }
-    
-            default: {
-              setError("Something went wrong.");
-              return;
-            }
+        switch (response.error) {
+          case ErrorType.INVALID_PARAMS: {
+            setError("Invalid id.");
+            return;
+          }
+
+          case ErrorType.NO_RESULT: {
+            setError("No bot with that Id.");
+            return;
+          }
+
+          default: {
+            setError("Something went wrong.");
+            return;
           }
         }
+      }
 
-        const validDataResponse = response as ValidDataResponse & { data: Bot };
+      const validDataResponse = response as ValidDataResponse & { data: Bot };
 
-        setBot(validDataResponse.data);
-      });
+      setBot(validDataResponse.data);
+    });
   }, [id]);
 
   const handleCancel = () => {
     form.clearData();
     navigate("/dashboard");
-  }
+  };
 
   const handleUpdate = async ({ name }: FormValues) => {
     // Temporary
     return new Promise<void>(() => {
       return;
-    })
-  }
+    });
+  };
 
   if (bot === null) return <Layout breadcrumb={null} error={error} />;
   if (bot === undefined) return <Loading />;
 
-  const breadcrumb: Breadcrumb = [
-    { title: bot.name, to: `/bots/${id}` },
-    { title: "Config" }
-  ];
+  const breadcrumb: Breadcrumb = [{ title: bot.name, to: `/bots/${id}` }, { title: "Config" }];
 
   return (
     <Layout breadcrumb={breadcrumb}>
@@ -93,30 +85,15 @@ export default function BotConfig() {
 
             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
               <div className="sm:col-span-4">
-                <TextInput
-                  key="name"
-                  name="name"
-                  type="text"
-                  title="Name"
-                  form={form}
-                />
+                <TextInput key="name" name="name" type="text" title="Name" form={form} />
               </div>
 
               <div className="col-span-full">
-                <TextArea
-                  key="personality"
-                  name="personality"
-                  title="Personality"
-                  description="Write a few sentences about the bot."
-                  rows={3}
-                  form={form}
-                />
+                <TextArea key="personality" name="personality" title="Personality" description="Write a few sentences about the bot." rows={3} form={form} />
               </div>
 
               <div className="col-span-full">
-                <PhotoUpload
-                  title="Photo"
-                />
+                <PhotoUpload title="Photo" />
               </div>
             </div>
           </div>
@@ -161,20 +138,13 @@ export default function BotConfig() {
 
         <div className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
           <div className="inline-flex w-full sm:ml-3 sm:w-auto">
-            <SubmitButton
-              text="Save"
-              form={form}
-              onPress={handleUpdate}
-            />
+            <SubmitButton text="Save" form={form} onPress={handleUpdate} />
           </div>
           <div className="inline-flex w-full mt-3 sm:mt-0 sm:ml-3 sm:w-auto">
-            <CancelButton
-              text="Cancel"
-              onPress={handleCancel}
-            />
+            <CancelButton text="Cancel" onPress={handleCancel} />
           </div>
         </div>
       </div>
     </Layout>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { useStripe } from '@stripe/react-stripe-js';
+import { useEffect } from "react";
+import { useStripe } from "@stripe/react-stripe-js";
 
 type PaymentResultProps = {
   clientSecret: string;
   callback: (status: string) => void;
-}
+};
 
 const PaymentResult: React.FC<PaymentResultProps> = ({ clientSecret, callback }) => {
   const stripe = useStripe();
@@ -15,11 +15,11 @@ const PaymentResult: React.FC<PaymentResultProps> = ({ clientSecret, callback })
     stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
       if (paymentIntent === undefined) return;
 
-      callback(paymentIntent.status as string)
+      callback(paymentIntent.status as string);
     });
   }, [stripe, clientSecret, callback]);
 
   return null;
-}
+};
 
 export default PaymentResult;

@@ -4,9 +4,9 @@ export type User = {
   email: string;
   customer_id: string;
   subscription: Subscription;
-}
+};
 
 type Subscription = {
   status: "active" | "past-due" | null;
   subscription_id: string | null;
-}
+};

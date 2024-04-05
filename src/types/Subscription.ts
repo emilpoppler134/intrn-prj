@@ -7,4 +7,4 @@ export type Subscription = {
   days_until_due: number;
   default_payment_method: string;
   created: number;
-}
+};

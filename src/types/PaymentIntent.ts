@@ -1,4 +1,4 @@
 export type PaymentIntent = {
-  productId: string,
-  clientSecret: string
-}
+  productId: string;
+  clientSecret: string;
+};

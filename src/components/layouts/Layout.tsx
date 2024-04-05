@@ -1,19 +1,18 @@
-import React, { Fragment, ReactNode, useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom';
-import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { HomeIcon, UserIcon } from '@heroicons/react/24/solid';
-
-import { API_ADDRESS } from '../config';
-import { useAuth } from '../provider/authProvider';
-import { dynamicClassNames } from '../utils/dynamicClassNames';
-import { Breadcrumb } from '../types/Breadcrumb';
-import ErrorAlert from './ErrorAlert';
-import Notification, { NotificationProps } from './Notification';
+import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { Bars3Icon, ChevronRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, UserIcon } from "@heroicons/react/24/solid";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { API_ADDRESS } from "../../config";
+import { useAuth } from "../../provider/authProvider";
+import { Breadcrumb } from "../../types/Breadcrumb";
+import { dynamicClassNames } from "../../utils/dynamicClassNames";
+import ErrorAlert from "./../ErrorAlert";
+import Notification, { NotificationProps } from "./../Notification";
 
 type StateErrorProps = {
   message: string;
-}
+};
 
 type LayoutProps = {
   children?: ReactNode;
@@ -21,11 +20,9 @@ type LayoutProps = {
   backgroundColor?: string;
   error?: string | null;
   onErrorClose?: () => void;
-}
+};
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', current: true }
-]
+const navigation = [{ name: "Dashboard", href: "/dashboard", current: true }];
 
 const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, error, onErrorClose }) => {
   const { state } = useLocation();
@@ -39,24 +36,24 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
       if (state.notification) setNotification(state.notification);
       if (state.error) setStateError(state.error);
 
-      window.history.replaceState({}, '');
+      window.history.replaceState({}, "");
     }
   }, [state]);
 
   const handleLogout = async () => {
     setToken(null);
-  }
+  };
 
   const handleErrorClose = () => {
     onErrorClose?.();
-  }
+  };
 
   if (breadcrumb === null) {
     breadcrumb = [{ title: "Error" }];
   }
-  
+
   if (!user) return null;
-  
+
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -78,13 +75,8 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                           <Link
                             key={item.name}
                             to={item.href}
-                            className={dynamicClassNames(
-                              item.current
-                                ? 'bg-gray-900 text-white'
-                                : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                              'rounded-md px-3 py-2 text-sm font-medium'
-                            )}
-                            aria-current={item.current ? 'page' : undefined}
+                            className={dynamicClassNames(item.current ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white", "rounded-md px-3 py-2 text-sm font-medium")}
+                            aria-current={item.current ? "page" : undefined}
                           >
                             {item.name}
                           </Link>
@@ -115,32 +107,20 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                           <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                             <div className="flex items-center px-4 py-2">
                               <div className="flex flex-col">
-                                <div className="text-base font-medium leading-none text-black">{ user.name }</div>
-                                <div className="mt-2 text-sm font-medium leading-none text-gray-400">{ user.email }</div>
+                                <div className="text-base font-medium leading-none text-black">{user.name}</div>
+                                <div className="mt-2 text-sm font-medium leading-none text-gray-400">{user.email}</div>
                               </div>
                             </div>
                             <Menu.Item>
                               {({ active }) => (
-                                <Link
-                                  to="/settings"
-                                  className={dynamicClassNames(
-                                    active ? 'bg-gray-100' : '',
-                                    'block px-4 py-2 text-sm text-gray-700'
-                                  )}
-                                >
+                                <Link to="/settings" className={dynamicClassNames(active ? "bg-gray-100" : "", "block px-4 py-2 text-sm text-gray-700")}>
                                   <span className="select-none">Settings</span>
                                 </Link>
                               )}
                             </Menu.Item>
                             <Menu.Item>
                               {({ active }) => (
-                                <button
-                                  onClick={handleLogout}
-                                  className={dynamicClassNames(
-                                    active ? 'bg-gray-100' : '',
-                                    'block w-full px-4 py-2 text-sm text-left text-gray-700'
-                                  )}
-                                >
+                                <button onClick={handleLogout} className={dynamicClassNames(active ? "bg-gray-100" : "", "block w-full px-4 py-2 text-sm text-left text-gray-700")}>
                                   <span className="select-none">Sign out</span>
                                 </button>
                               )}
@@ -155,11 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                     <Disclosure.Button className="relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="absolute -inset-0.5" />
                       <span className="sr-only">Open main menu</span>
-                      {open ? (
-                        <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-                      ) : (
-                        <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-                      )}
+                      {open ? <XMarkIcon className="block h-6 w-6" aria-hidden="true" /> : <Bars3Icon className="block h-6 w-6" aria-hidden="true" />}
                     </Disclosure.Button>
                   </div>
                 </div>
@@ -171,11 +147,8 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={dynamicClassNames(
-                        item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                        'block rounded-md px-3 py-2 text-base font-medium'
-                      )}
-                      aria-current={item.current ? 'page' : undefined}
+                      className={dynamicClassNames(item.current ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white", "block rounded-md px-3 py-2 text-base font-medium")}
+                      aria-current={item.current ? "page" : undefined}
                     >
                       {item.name}
                     </Link>
@@ -187,8 +160,8 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                       <UserIcon className="w-6 h-6 fill-white" aria-hidden="true" />
                     </div>
                     <div className="ml-3">
-                      <div className="text-base font-medium leading-none text-white">{ user.name }</div>
-                      <div className="mt-1 text-sm font-medium leading-none text-gray-400">{ user.email }</div>
+                      <div className="text-base font-medium leading-none text-white">{user.name}</div>
+                      <div className="mt-1 text-sm font-medium leading-none text-gray-400">{user.email}</div>
                     </div>
                   </div>
                   <div className="mt-3 space-y-1 px-2">
@@ -218,18 +191,18 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
                     <span className="text-base font-medium text-gray-700">Home</span>
                   </Link>
                 </li>
-                {breadcrumb.map(item => (
+                {breadcrumb.map((item) => (
                   <li key={item.title}>
                     <div className="flex items-center">
                       <ChevronRightIcon className="w-4 h-4 mx-1 stroke-gray-400 stroke-2" aria-hidden="true" />
 
-                      {item.to ? 
+                      {item.to ? (
                         <Link to={item.to} className="ml-1 text-gray-700 hover:underline md:ml-2">
-                          <span className="text-base font-medium">{ item.title }</span>
+                          <span className="text-base font-medium">{item.title}</span>
                         </Link>
-                      :
-                        <span className="ml-1 cursor-default text-base font-medium text-gray-500 md:ml-2 dark:text-gray-400">{ item.title }</span>
-                      }
+                      ) : (
+                        <span className="ml-1 cursor-default text-base font-medium text-gray-500 md:ml-2 dark:text-gray-400">{item.title}</span>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -237,29 +210,17 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
             </div>
           </header>
 
-          <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 [&>div]:w-full">
-            { children }
-          </div>
+          <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 [&>div]:w-full">{children}</div>
         </main>
 
-        {!error ? null :
-          <ErrorAlert message={error} onClose={handleErrorClose} />
-        }
+        {!error ? null : <ErrorAlert message={error} onClose={handleErrorClose} />}
 
-        {!stateError ? null :
-          <ErrorAlert message={stateError.message} onClose={() => setStateError(null)} />
-        }
+        {!stateError ? null : <ErrorAlert message={stateError.message} onClose={() => setStateError(null)} />}
 
-        {!notification ? null :
-          <Notification
-            title={notification.title}
-            message={notification.message}
-          />
-        }
-
+        {!notification ? null : <Notification title={notification.title} message={notification.message} />}
       </div>
     </>
-  )
-}
+  );
+};
 
 export default Layout;

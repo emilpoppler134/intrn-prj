@@ -1,19 +1,18 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { UserIcon } from '@heroicons/react/24/solid';
-
-import { Bot } from '../types/Bot';
+import { UserIcon } from "@heroicons/react/24/solid";
+import React from "react";
+import { Link } from "react-router-dom";
+import { Bot } from "../types/Bot";
 
 type BotItemProps = {
   bot: Bot;
-}
+};
 
 const BotItem: React.FC<BotItemProps> = ({ bot }) => {
   return (
     <div className="flex flex-col">
       <Link to={`/bots/${bot._id}`} className="group">
         <div className="mb-1">
-          <span className="text-base text-gray-700">{ bot.name }</span>
+          <span className="text-base text-gray-700">{bot.name}</span>
         </div>
         <div className="flex flex-col">
           <div className="relative pb-[100%] outline outline-2 outline-gray-300">
@@ -30,7 +29,7 @@ const BotItem: React.FC<BotItemProps> = ({ bot }) => {
         <span className="text-base font-medium text-primary-600 hover:underline dark:text-primary-500">Config</span>
       </Link>
     </div>
-  )
-}
+  );
+};
 
 export default BotItem;

@@ -41,15 +41,17 @@
   background: #fff;
   border: 0;
   border-radius: 6px;
-  box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px 0 rgb(0 0 0 / 7%), 0 1px 1.5px 0 rgb(0 0 0 / 5%);
-  color: rgba(26,26,26,.9);
+  box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px 0 rgb(0 0 0 / 7%),
+    0 1px 1.5px 0 rgb(0 0 0 / 5%);
+  color: rgba(26, 26, 26, 0.9);
   height: 44px;
   cursor: text;
-  transition: box-shadow .08s ease-in;
+  transition: box-shadow 0.08s ease-in;
 }
 
 .TextInput:has(.TextInput-hover:focus-within) {
-  box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(50 151 211 / 30%);
+  box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%),
+    0 0 0 4px rgb(50 151 211 / 30%);
   z-index: 2;
 }
 
@@ -67,7 +69,8 @@
   background-color: #fff;
   color: rgb(127, 127, 138);
   font-size: 16px;
-  transition: transform 200ms cubic-bezier(0.0, 0, 0.2, 1), top 200ms cubic-bezier(0.0, 0, 0.2, 1);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1),
+    top 200ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .TextInput-element {
@@ -92,8 +95,9 @@
 }
 
 .TextInput--Invalid {
-  box-shadow: 0 0 0 1px rgb(211 50 50 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(211 50 50 / 30%);
-  z-index: 2;  
+  box-shadow: 0 0 0 1px rgb(211 50 50 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%),
+    0 0 0 4px rgb(211 50 50 / 30%);
+  z-index: 2;
 }
 
 .TextInput--Invalid .TextInput-key {
@@ -110,15 +114,17 @@
   background: #fff;
   border: 0;
   border-radius: 6px;
-  box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px 0 rgb(0 0 0 / 7%), 0 1px 1.5px 0 rgb(0 0 0 / 5%);
-  color: rgba(26,26,26,.9);
+  box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px 0 rgb(0 0 0 / 7%),
+    0 1px 1.5px 0 rgb(0 0 0 / 5%);
+  color: rgba(26, 26, 26, 0.9);
   position: relative;
   cursor: text;
-  transition: box-shadow .08s ease-in;
+  transition: box-shadow 0.08s ease-in;
 }
 
 .TextArea:focus-within {
-  box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(50 151 211 / 30%);
+  box-shadow: 0 0 0 1px rgb(50 151 211 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%),
+    0 0 0 4px rgb(50 151 211 / 30%);
   z-index: 2;
 }
 
@@ -136,7 +142,8 @@
   background-color: #fff;
   color: rgb(127, 127, 138);
   font-size: 16px;
-  transition: transform 200ms cubic-bezier(0.0, 0, 0.2, 1), top 200ms cubic-bezier(0.0, 0, 0.2, 1);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1),
+    top 200ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .TextArea-element {
@@ -157,8 +164,9 @@
 }
 
 .TextArea--Invalid {
-  box-shadow: 0 0 0 1px rgb(211 50 50 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%), 0 0 0 4px rgb(211 50 50 / 30%);
-  z-index: 2;  
+  box-shadow: 0 0 0 1px rgb(211 50 50 / 30%), 0 1px 1px 0 rgb(0 0 0 / 7%),
+    0 0 0 4px rgb(211 50 50 / 30%);
+  z-index: 2;
 }
 
 .TextArea--Invalid .TextArea-key {

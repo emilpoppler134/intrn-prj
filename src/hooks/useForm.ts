@@ -1,6 +1,5 @@
-import { useState } from 'react';
-
-import { defaultValidation, notEmpty } from '../utils/validation';
+import { useState } from "react";
+import { defaultValidation, notNil } from "../utils/validation";
 
 export type FormHook = {
   data: FormData;
@@ -33,82 +32,84 @@ type FormPropItem = {
   value?: string;
   helperText?: string;
   validation?: ((value: string) => boolean) | null;
-}
+};
 
 export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook => {
   const initialFormState: FormData = {};
 
   fields.forEach((stage, index) => {
-    stage.forEach(item => {
+    stage.forEach((item) => {
       initialFormState[item.key] = {
         stage: index,
-        value: item.value ?? '',
+        value: item.value ?? "",
         invalid: false,
         helperText: item.helperText ?? null,
-        validation: item.validation ?? item.validation === null ? (_) => true : defaultValidation
+        validation: item.validation ?? item.validation === null ? (_) => true : defaultValidation,
       };
-    })
+    });
   });
 
   const [data, setData] = useState<FormData>(initialFormState);
   const [loading, setLoading] = useState(false);
 
   const clearData = () => {
-    Object.keys(data).forEach(key => {
-      setData(prevState => ({
+    Object.keys(data).forEach((key) => {
+      setData((prevState) => ({
         ...prevState,
         [key]: {
           ...prevState[key],
           value: "",
-          invalid: false
-        }
+          invalid: false,
+        },
       }));
     });
   };
 
   const setValue = (key: string, value: string) => {
-    setData(prevState => ({
+    setData((prevState) => ({
       ...prevState,
       [key]: {
         ...prevState[key],
-        value
-      }
+        value,
+      },
     }));
   };
 
   const setInvalid = (key: string, invalid: boolean, helperText?: string) => {
-    setData(prevState => ({
+    setData((prevState) => ({
       ...prevState,
       [key]: {
         ...prevState[key],
         helperText: helperText === undefined ? prevState[key].helperText : helperText,
-        invalid
-      }
+        invalid,
+      },
     }));
   };
 
   const validateForm = (): true | Array<string> => {
-    const inputValidation = Object.keys(data).filter(key => data[key].stage === step).map(key => {
-      return data[key].validation(data[key].value) ? null : key;
-    });
-    const invalidInputs: Array<string> = inputValidation.filter(notEmpty);
+    const inputValidation = Object.keys(data)
+      .filter((key) => data[key].stage === step)
+      .map((key) => {
+        return data[key].validation(data[key].value) ? null : key;
+      });
+    const invalidInputs: Array<string> = inputValidation.filter(notNil);
 
     return invalidInputs.length === 0 ? true : invalidInputs;
-  }
+  };
 
   const handleSubmit = async (callback: (values: FormValues) => Promise<void>) => {
     if (loading) return;
 
     const validation = validateForm();
-    
+
     if (validation !== true) {
-      validation.forEach(key => setInvalid(key, true));
+      validation.forEach((key) => setInvalid(key, true));
       return;
     }
 
     setLoading(true);
 
-    const response = Object.keys(data).reduce<FormValues>(function(acc, key) {
+    const response = Object.keys(data).reduce<FormValues>(function (acc, key) {
       acc[key] = data[key].value;
       return acc;
     }, {});
@@ -125,6 +126,6 @@ export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook
     setValue,
     setInvalid,
     validateForm,
-    handleSubmit
+    handleSubmit,
   };
 };

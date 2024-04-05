@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-
-import { useAuth } from '../provider/authProvider';
+import { useAuth } from "../provider/authProvider";
 
 export const ProtectedRoute: React.FC = () => {
   const navigate = useNavigate();
@@ -14,4 +13,4 @@ export const ProtectedRoute: React.FC = () => {
   }, [user, navigate]);
 
   return user ? <Outlet /> : null;
-}
+};
