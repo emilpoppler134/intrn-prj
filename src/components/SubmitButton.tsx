@@ -3,20 +3,23 @@ import React, { useEffect, useState } from 'react';
 import { dynamicClassNames } from '../utils/dynamicClassNames';
 import { FormHook, FormValues } from '../hooks/useForm';
 
+const palette = {
+  primary: { bg: "bg-primary-600", hover: "bg-primary-700", focus: "ring-primary-300" },
+  red: { bg: "bg-red-600", hover: "bg-red-700", focus: "ring-red-300" }
+}
+
 type SubmitButtonProps = {
   text: string;
   form: FormHook;
   onPress: (formValues: FormValues) => Promise<void>
   fullWidth?: boolean;
-  palette?: Array<string>;
+  color?: keyof typeof palette;
 }
 
-const defaultPalette = ["bg-primary-600", "bg-primary-700", "ring-primary-300"];
-
-const SubmitButton: React.FC<SubmitButtonProps> = ({ text, form, onPress, fullWidth = true, palette = defaultPalette }) => {
+const SubmitButton: React.FC<SubmitButtonProps> = ({ text, form, onPress, fullWidth = true, color = "primary" }) => {
   const [available, setAvaliable] = useState(false);
 
-  const [background, hover, focus] = palette;
+  const { bg, hover, focus } = palette[color];
 
   useEffect(() => {
     const isValid = form.validateForm();
@@ -36,7 +39,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ text, form, onPress, fullWi
       <button 
         className={dynamicClassNames(
           !available ? "pointer-events-none" : "",
-          `relative w-full px-4 py-2 rounded-md shadow-md ${background} hover:${hover} focus:ring-4 focus:${focus}`
+          `relative w-full px-4 py-2 rounded-md shadow-md ${bg} hover:${hover} focus:ring-4 focus:${focus}`
         )}
         onClick={onButtonClick}
       >
