@@ -1,4 +1,17 @@
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 type DateTimeFull = {
   second: string;
@@ -12,11 +25,20 @@ type DateTimeFull = {
 const formatUnixTimestamp = (unix_timestamp: number): DateTimeFull => {
   const date = new Date(unix_timestamp * 1000);
 
-  const second = date.getSeconds().toString().split("").length > 1 ? date.getSeconds().toString() : "0" + date.getSeconds();
+  const second =
+    date.getSeconds().toString().split("").length > 1
+      ? date.getSeconds().toString()
+      : "0" + date.getSeconds();
 
-  const minute = date.getMinutes().toString().split("").length > 1 ? date.getMinutes().toString() : "0" + date.getMinutes();
+  const minute =
+    date.getMinutes().toString().split("").length > 1
+      ? date.getMinutes().toString()
+      : "0" + date.getMinutes();
 
-  const hour = date.getHours().toString().split("").length > 1 ? date.getHours().toString() : "0" + date.getHours();
+  const hour =
+    date.getHours().toString().split("").length > 1
+      ? date.getHours().toString()
+      : "0" + date.getHours();
 
   const day = date.getDate();
   const month = months[date.getMonth()];

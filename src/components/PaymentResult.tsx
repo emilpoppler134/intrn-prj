@@ -6,7 +6,10 @@ type PaymentResultProps = {
   callback: (status: string) => void;
 };
 
-const PaymentResult: React.FC<PaymentResultProps> = ({ clientSecret, callback }) => {
+const PaymentResult: React.FC<PaymentResultProps> = ({
+  clientSecret,
+  callback,
+}) => {
   const stripe = useStripe();
 
   useEffect(() => {

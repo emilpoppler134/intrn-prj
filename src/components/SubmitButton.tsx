@@ -19,7 +19,13 @@ type SubmitButtonProps = {
   color?: keyof typeof palette;
 };
 
-const SubmitButton: React.FC<SubmitButtonProps> = ({ text, form, onPress, fullWidth = true, color = "primary" }) => {
+const SubmitButton: React.FC<SubmitButtonProps> = ({
+  text,
+  form,
+  onPress,
+  fullWidth = true,
+  color = "primary",
+}) => {
   const [available, setAvaliable] = useState(false);
 
   const { bg, hover, focus } = palette[color];
@@ -36,9 +42,22 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ text, form, onPress, fullWi
 
   return (
     <div className={dynamicClassNames(fullWidth ? "" : "sm:w-auto", "w-full")}>
-      <button className={dynamicClassNames(!available ? "pointer-events-none" : "", `relative w-full px-4 py-2 rounded-md shadow-md ${bg} hover:${hover} focus:ring-4 focus:${focus}`)} onClick={onButtonClick}>
+      <button
+        className={dynamicClassNames(
+          !available ? "pointer-events-none" : "",
+          `relative w-full px-4 py-2 rounded-md shadow-md ${bg} hover:${hover} focus:ring-4 focus:${focus}`,
+        )}
+        onClick={onButtonClick}
+      >
         <span className={form.loading ? "opacity-0" : ""}>
-          <span className={dynamicClassNames(!available ? "text-opacity-60" : "", "text-sm font-semibold text-white pointer-events-none")}>{text}</span>
+          <span
+            className={dynamicClassNames(
+              !available ? "text-opacity-60" : "",
+              "text-sm font-semibold text-white pointer-events-none",
+            )}
+          >
+            {text}
+          </span>
         </span>
 
         {!form.loading ? null : <div className="theme-spinner"></div>}

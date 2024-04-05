@@ -22,11 +22,15 @@ export default function Payment() {
   const { signNewToken } = useAuth();
 
   const resultCallback = pathname.includes("/result");
-  const clientSecretProp = new URLSearchParams(search).get("payment_intent_client_secret");
+  const clientSecretProp = new URLSearchParams(search).get(
+    "payment_intent_client_secret",
+  );
   const productIdProp = new URLSearchParams(search).get("productId");
 
   const [error, setError] = useState<string | null>(null);
-  const [paymentIntent, setPaymentIntent] = useState<PaymentIntent | null | undefined>(undefined);
+  const [paymentIntent, setPaymentIntent] = useState<
+    PaymentIntent | null | undefined
+  >(undefined);
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
 
   useEffect(() => {
@@ -67,7 +71,8 @@ export default function Payment() {
 
         if (response === null || response.status === ResponseStatus.ERROR) {
           const error = {
-            message: "Something went wrong. Please try signing out and signing in again.",
+            message:
+              "Something went wrong. Please try signing out and signing in again.",
           };
           navigate("/dashboard/", { replace: true, state: { error } });
           return;
@@ -119,17 +124,42 @@ export default function Payment() {
     }
   };
 
-  const breadcrumb: Breadcrumb = [{ title: "Subscriptions", to: "/subscriptions" }, { title: "Payment" }];
+  const breadcrumb: Breadcrumb = [
+    { title: "Subscriptions", to: "/subscriptions" },
+    { title: "Payment" },
+  ];
 
-  if (!stripePromise || product === null || (resultCallback && (clientSecretProp === null || productIdProp === null)) || (!resultCallback && paymentIntent === null)) return <Layout breadcrumb={breadcrumb} error={"Something went wrong."} />;
-  if ((!resultCallback && paymentIntent === undefined) || product === undefined) return <Loading />;
+  if (
+    !stripePromise ||
+    product === null ||
+    (resultCallback && (clientSecretProp === null || productIdProp === null)) ||
+    (!resultCallback && paymentIntent === null)
+  )
+    return <Layout breadcrumb={breadcrumb} error={"Something went wrong."} />;
+  if ((!resultCallback && paymentIntent === undefined) || product === undefined)
+    return <Loading />;
 
-  const clientSecret = resultCallback ? clientSecretProp ?? undefined : paymentIntent ? paymentIntent.clientSecret : undefined;
+  const clientSecret = resultCallback
+    ? clientSecretProp ?? undefined
+    : paymentIntent
+      ? paymentIntent.clientSecret
+      : undefined;
 
   return (
-    <Layout breadcrumb={breadcrumb} error={error} onErrorClose={() => setError(null)}>
+    <Layout
+      breadcrumb={breadcrumb}
+      error={error}
+      onErrorClose={() => setError(null)}
+    >
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        {!resultCallback ? paymentIntent && <PaymentForm product={product} /> : clientSecretProp && <PaymentResult clientSecret={clientSecretProp} callback={callback} />}
+        {!resultCallback
+          ? paymentIntent && <PaymentForm product={product} />
+          : clientSecretProp && (
+              <PaymentResult
+                clientSecret={clientSecretProp}
+                callback={callback}
+              />
+            )}
       </Elements>
     </Layout>
   );

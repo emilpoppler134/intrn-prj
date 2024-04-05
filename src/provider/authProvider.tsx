@@ -1,5 +1,13 @@
 import axios from "axios";
-import { ReactElement, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  ReactElement,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
 import { User } from "../types/User";
 import { callAPI } from "../utils/apiService";
@@ -18,7 +26,9 @@ type AuthProviderProps = {
 const AuthContext = createContext<AuthContextProps>(null);
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [token, _setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [token, _setToken] = useState<string | null>(
+    localStorage.getItem("token"),
+  );
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
@@ -72,10 +82,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken,
       signNewToken,
     }),
-    [token, user, signNewToken]
+    [token, user, signNewToken],
   );
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

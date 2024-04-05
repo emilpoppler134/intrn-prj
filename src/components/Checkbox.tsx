@@ -18,12 +18,20 @@ const Checkbox: React.FC<Props> = ({ name, title, onChange }) => {
 
   return (
     <div className="checkbox flex items-start">
-      <input id={name} aria-describedby={name} type="checkbox" className="hidden" onChange={handleRememberChange} />
+      <input
+        id={name}
+        aria-describedby={name}
+        type="checkbox"
+        className="hidden"
+        onChange={handleRememberChange}
+      />
       <label htmlFor={name} className="flex items-center cursor-pointer">
         <div
           className={dynamicClassNames(
-            checked ? "bg-primary-600 dark:bg-primary-700 border-primary-300 dark:border-primary-600" : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600",
-            "relative w-4 h-4 border rounded focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
+            checked
+              ? "bg-primary-600 dark:bg-primary-700 border-primary-300 dark:border-primary-600"
+              : "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600",
+            "relative w-4 h-4 border rounded focus:ring-3 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800",
           )}
         >
           {!checked ? null : (
@@ -32,7 +40,9 @@ const Checkbox: React.FC<Props> = ({ name, title, onChange }) => {
             </div>
           )}
         </div>
-        <div className="select-none ml-2 text-sm text-gray-500 dark:text-gray-300">{title}</div>
+        <div className="select-none ml-2 text-sm text-gray-500 dark:text-gray-300">
+          {title}
+        </div>
       </label>
     </div>
   );

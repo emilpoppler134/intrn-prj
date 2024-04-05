@@ -1,12 +1,27 @@
 import axios, { AxiosResponse } from "axios";
 import { API_ADDRESS } from "../config";
-import { ApiResponse, ErrorResponse, ErrorType, ResponseStatus, ValidDataResponse, ValidResponse } from "../types/ApiResponses";
+import {
+  ApiResponse,
+  ErrorResponse,
+  ErrorType,
+  ResponseStatus,
+  ValidDataResponse,
+  ValidResponse,
+} from "../types/ApiResponses";
 
 type Body = { [key: string]: string | undefined };
 
-export async function callAPI<T>(url: string, body?: Body): Promise<ValidResponse | (ValidDataResponse & { data: T }) | ErrorResponse | null> {
+export async function callAPI<T>(
+  url: string,
+  body?: Body,
+): Promise<
+  ValidResponse | (ValidDataResponse & { data: T }) | ErrorResponse | null
+> {
   try {
-    const axiosResponse: AxiosResponse = await axios.post(API_ADDRESS + url, body);
+    const axiosResponse: AxiosResponse = await axios.post(
+      API_ADDRESS + url,
+      body,
+    );
     const response: ApiResponse = axiosResponse.data;
 
     if (response === null) {
@@ -27,7 +42,9 @@ export async function callAPI<T>(url: string, body?: Body): Promise<ValidRespons
       } as ErrorResponse;
     }
 
-    const isValidDataResponse = ((r: ValidResponse | ValidDataResponse): r is ValidDataResponse => {
+    const isValidDataResponse = ((
+      r: ValidResponse | ValidDataResponse,
+    ): r is ValidDataResponse => {
       return (r as ValidDataResponse).data !== undefined;
     })(response);
 

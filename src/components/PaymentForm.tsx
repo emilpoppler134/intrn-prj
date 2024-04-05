@@ -1,4 +1,8 @@
-import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import {
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import React, { useState } from "react";
 import { APP_ADDRESS } from "../config";
 import { useForm } from "../hooks/useForm";
@@ -39,8 +43,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ product }) => {
         <div className="mt-4">
           <p className="text-lg font-semibold text-gray-600">{product.name}</p>
           <p className="mt-2 flex items-baseline justify-start gap-x-2">
-            <span className="text-5xl font-bold tracking-tight text-gray-900">{product.price} SEK</span>
-            <span className="text-sm font-semibold leading-6 tracking-wide text-gray-600">/mo</span>
+            <span className="text-5xl font-bold tracking-tight text-gray-900">
+              {product.price} SEK
+            </span>
+            <span className="text-sm font-semibold leading-6 tracking-wide text-gray-600">
+              /mo
+            </span>
           </p>
         </div>
       </div>

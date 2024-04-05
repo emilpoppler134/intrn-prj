@@ -6,12 +6,14 @@ import Routes from "./routes";
 import "./assets/index.css";
 import "./assets/main.css";
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement,
+);
 
 root.render(
   <React.StrictMode>
     <AuthProvider>
       <Routes />
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

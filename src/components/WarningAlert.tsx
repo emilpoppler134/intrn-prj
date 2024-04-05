@@ -18,7 +18,10 @@ const WarningAlert: React.FC<WarningAlertProps> = ({ message, link }) => {
       <div className="p-4 shadow-lg bg-yellow-50 border-l-4 border-yellow-400">
         <div className="flex">
           <div className="flex-shrink-0">
-            <ExclamationTriangleIcon className="w-5 h-5 fill-yellow-400" aria-hidden="true" />
+            <ExclamationTriangleIcon
+              className="w-5 h-5 fill-yellow-400"
+              aria-hidden="true"
+            />
           </div>
           <div className="ml-3">
             <span className="block text-sm text-yellow-700">

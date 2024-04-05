@@ -6,7 +6,11 @@ import TextInput from "../components/TextInput";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import {
+  ErrorType,
+  ResponseStatus,
+  ValidDataResponse,
+} from "../types/ApiResponses";
 import { callAPI } from "../utils/apiService";
 import { emailValidation } from "../utils/validation";
 
@@ -95,15 +99,44 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout error={error} onErrorClose={() => setError(null)} onGoogleAuthClick={onGoogleAuthLogin} page="login" showGoogleAuth={true} title="Sign in to your account">
-      <TextInput name="email" key="email" type="text" title="Email" form={form} onEnterKeyPress={handleEmailEnterKeyPress} />
+    <AuthLayout
+      error={error}
+      onErrorClose={() => setError(null)}
+      onGoogleAuthClick={onGoogleAuthLogin}
+      page="login"
+      showGoogleAuth={true}
+      title="Sign in to your account"
+    >
+      <TextInput
+        name="email"
+        key="email"
+        type="text"
+        title="Email"
+        form={form}
+        onEnterKeyPress={handleEmailEnterKeyPress}
+      />
 
-      <TextInput name="password" key="password" type="password" title="Password" reference={passwordInputRef} form={form} onEnterKeyPress={handlePasswordEnterKeyPress} />
+      <TextInput
+        name="password"
+        key="password"
+        type="password"
+        title="Password"
+        reference={passwordInputRef}
+        form={form}
+        onEnterKeyPress={handlePasswordEnterKeyPress}
+      />
 
       <div className="flex items-center justify-between">
-        <Checkbox name="remember" title="Remember me" onChange={handleRememberChange} />
+        <Checkbox
+          name="remember"
+          title="Remember me"
+          onChange={handleRememberChange}
+        />
 
-        <Link to="/forgot-password" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
+        <Link
+          to="/forgot-password"
+          className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
+        >
           <span>Forgot password?</span>
         </Link>
       </div>

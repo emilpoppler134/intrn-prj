@@ -24,7 +24,10 @@ const ErrorAlert: React.FC<Props> = ({ message, onClose }) => {
               <span>{message}</span>
             </span>
           </div>
-          <button className="absolute top-0 bottom-0 right-0 px-4 py-2" onClick={handleButtonClick}>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-2"
+            onClick={handleButtonClick}
+          >
             <XMarkIcon className="h-6 w-6 stroke-red-500" />
           </button>
         </div>

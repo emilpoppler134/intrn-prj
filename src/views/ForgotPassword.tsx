@@ -23,7 +23,14 @@ type StepProps = {
   step: number;
 };
 
-const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onResetSubmit, reenteredPasswordInputRef, form, step }) => {
+const Steps: React.FC<StepProps> = ({
+  onConfirmationSubmit,
+  onRequestSubmit,
+  onResetSubmit,
+  reenteredPasswordInputRef,
+  form,
+  step,
+}) => {
   switch (step) {
     case 0: {
       const handleEmailEnterKeyPress = async () => {
@@ -32,7 +39,14 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onR
 
       return (
         <>
-          <TextInput name="email" key="email" type="text" title="Email" form={form} onEnterKeyPress={handleEmailEnterKeyPress} />
+          <TextInput
+            name="email"
+            key="email"
+            type="text"
+            title="Email"
+            form={form}
+            onEnterKeyPress={handleEmailEnterKeyPress}
+          />
 
           <SubmitButton text="Next" form={form} onPress={onRequestSubmit} />
         </>
@@ -46,9 +60,20 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onR
 
       return (
         <>
-          <TextInput name="code" key="code" type="text" title="Code" form={form} onEnterKeyPress={handleCodeEnterKeyPress} />
+          <TextInput
+            name="code"
+            key="code"
+            type="text"
+            title="Code"
+            form={form}
+            onEnterKeyPress={handleCodeEnterKeyPress}
+          />
 
-          <SubmitButton text="Next" form={form} onPress={onConfirmationSubmit} />
+          <SubmitButton
+            text="Next"
+            form={form}
+            onPress={onConfirmationSubmit}
+          />
         </>
       );
     }
@@ -64,9 +89,24 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onR
 
       return (
         <>
-          <TextInput name="password" key="password" type="password" title="New password" form={form} onEnterKeyPress={handlePasswordEnterKeyPress} />
+          <TextInput
+            name="password"
+            key="password"
+            type="password"
+            title="New password"
+            form={form}
+            onEnterKeyPress={handlePasswordEnterKeyPress}
+          />
 
-          <TextInput name="reenteredPassword" key="reenteredPassword" type="password" title="Re-enter new password" reference={reenteredPasswordInputRef} form={form} onEnterKeyPress={handleReenteredPasswordEnterKeyPress} />
+          <TextInput
+            name="reenteredPassword"
+            key="reenteredPassword"
+            type="password"
+            title="Re-enter new password"
+            reference={reenteredPasswordInputRef}
+            form={form}
+            onEnterKeyPress={handleReenteredPasswordEnterKeyPress}
+          />
 
           <SubmitButton text="Save" form={form} onPress={onResetSubmit} />
         </>
@@ -76,7 +116,9 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onR
     default: {
       return (
         <>
-          <span className="text-base font-medium text-gray-700">Something went wrong.</span>
+          <span className="text-base font-medium text-gray-700">
+            Something went wrong.
+          </span>
         </>
       );
     }
@@ -103,7 +145,7 @@ export default function ForgotPassword() {
       [{ key: "code" }],
       [{ key: "password" }, { key: "reenteredPassword" }],
     ],
-    step
+    step,
   );
 
   const handleRequestSubmit = async ({ email }: FormValues) => {
@@ -129,7 +171,9 @@ export default function ForgotPassword() {
         }
 
         case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when createing the verification code.");
+          setError(
+            "Something went wrong when createing the verification code.",
+          );
           return;
         }
 
@@ -183,7 +227,12 @@ export default function ForgotPassword() {
     setStep(2);
   };
 
-  const handleResetSubmit = async ({ email, code, password, reenteredPassword }: FormValues) => {
+  const handleResetSubmit = async ({
+    email,
+    code,
+    password,
+    reenteredPassword,
+  }: FormValues) => {
     setError(null);
 
     if (password !== reenteredPassword) {
@@ -235,8 +284,22 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout description={descriptions[step]} error={error} onErrorClose={() => setError(null)} page="forgot-password" showGoogleAuth={false} title="Forgot password">
-      <Steps onConfirmationSubmit={handleConfirmationSubmit} onRequestSubmit={handleRequestSubmit} onResetSubmit={handleResetSubmit} reenteredPasswordInputRef={reenteredPasswordInputRef} form={form} step={step} />
+    <AuthLayout
+      description={descriptions[step]}
+      error={error}
+      onErrorClose={() => setError(null)}
+      page="forgot-password"
+      showGoogleAuth={false}
+      title="Forgot password"
+    >
+      <Steps
+        onConfirmationSubmit={handleConfirmationSubmit}
+        onRequestSubmit={handleRequestSubmit}
+        onResetSubmit={handleResetSubmit}
+        reenteredPasswordInputRef={reenteredPasswordInputRef}
+        form={form}
+        step={step}
+      />
     </AuthLayout>
   );
 }

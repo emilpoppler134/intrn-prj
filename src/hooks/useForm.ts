@@ -8,7 +8,9 @@ export type FormHook = {
   setValue: (key: string, value: string) => void;
   setInvalid: (key: string, invalid: boolean, helperText?: string) => void;
   validateForm: () => true | Array<string>;
-  handleSubmit: (callback: (formValues: FormValues) => Promise<void>) => Promise<void>;
+  handleSubmit: (
+    callback: (formValues: FormValues) => Promise<void>,
+  ) => Promise<void>;
 };
 
 type FormData = {
@@ -34,7 +36,10 @@ type FormPropItem = {
   validation?: ((value: string) => boolean) | null;
 };
 
-export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook => {
+export const useForm = (
+  fields: FormPropList = [[]],
+  step: number = 0,
+): FormHook => {
   const initialFormState: FormData = {};
 
   fields.forEach((stage, index) => {
@@ -44,7 +49,10 @@ export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook
         value: item.value ?? "",
         invalid: false,
         helperText: item.helperText ?? null,
-        validation: item.validation ?? item.validation === null ? (_) => true : defaultValidation,
+        validation:
+          item.validation ?? item.validation === null
+            ? (_) => true
+            : defaultValidation,
       };
     });
   });
@@ -80,7 +88,8 @@ export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook
       ...prevState,
       [key]: {
         ...prevState[key],
-        helperText: helperText === undefined ? prevState[key].helperText : helperText,
+        helperText:
+          helperText === undefined ? prevState[key].helperText : helperText,
         invalid,
       },
     }));
@@ -97,7 +106,9 @@ export const useForm = (fields: FormPropList = [[]], step: number = 0): FormHook
     return invalidInputs.length === 0 ? true : invalidInputs;
   };
 
-  const handleSubmit = async (callback: (values: FormValues) => Promise<void>) => {
+  const handleSubmit = async (
+    callback: (values: FormValues) => Promise<void>,
+  ) => {
     if (loading) return;
 
     const validation = validateForm();

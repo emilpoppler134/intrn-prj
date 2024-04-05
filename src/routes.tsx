@@ -80,7 +80,10 @@ const Routes = () => {
     },
   ];
 
-  const router = createBrowserRouter([...routesForPublic, ...authenticatedRoutes]);
+  const router = createBrowserRouter([
+    ...routesForPublic,
+    ...authenticatedRoutes,
+  ]);
 
   return <RouterProvider router={router} />;
 };

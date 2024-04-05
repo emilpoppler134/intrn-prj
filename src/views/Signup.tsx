@@ -5,7 +5,11 @@ import TextInput from "../components/TextInput";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { FormHook, FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import { ErrorType, ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import {
+  ErrorType,
+  ResponseStatus,
+  ValidDataResponse,
+} from "../types/ApiResponses";
 import { callAPI } from "../utils/apiService";
 import { emailValidation } from "../utils/validation";
 
@@ -25,7 +29,15 @@ type StepProps = {
   step: number;
 };
 
-const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onSignupSubmit, emailInputRef, reenteredPasswordInputRef, form, step }) => {
+const Steps: React.FC<StepProps> = ({
+  onConfirmationSubmit,
+  onRequestSubmit,
+  onSignupSubmit,
+  emailInputRef,
+  reenteredPasswordInputRef,
+  form,
+  step,
+}) => {
   switch (step) {
     case 0: {
       const handleNameEnterKeyPress = async () => {
@@ -38,9 +50,24 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onS
 
       return (
         <>
-          <TextInput name="name" key="name" type="text" title="Name" form={form} onEnterKeyPress={handleNameEnterKeyPress} />
+          <TextInput
+            name="name"
+            key="name"
+            type="text"
+            title="Name"
+            form={form}
+            onEnterKeyPress={handleNameEnterKeyPress}
+          />
 
-          <TextInput name="email" key="email" type="text" title="Email" reference={emailInputRef} form={form} onEnterKeyPress={handleEmailEnterKeyPress} />
+          <TextInput
+            name="email"
+            key="email"
+            type="text"
+            title="Email"
+            reference={emailInputRef}
+            form={form}
+            onEnterKeyPress={handleEmailEnterKeyPress}
+          />
 
           <SubmitButton text="Next" form={form} onPress={onRequestSubmit} />
         </>
@@ -54,9 +81,20 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onS
 
       return (
         <>
-          <TextInput name="code" key="code" type="text" title="Verification code" form={form} onEnterKeyPress={handleCodeEnterKeyPress} />
+          <TextInput
+            name="code"
+            key="code"
+            type="text"
+            title="Verification code"
+            form={form}
+            onEnterKeyPress={handleCodeEnterKeyPress}
+          />
 
-          <SubmitButton text="Next" form={form} onPress={onConfirmationSubmit} />
+          <SubmitButton
+            text="Next"
+            form={form}
+            onPress={onConfirmationSubmit}
+          />
         </>
       );
     }
@@ -72,9 +110,24 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onS
 
       return (
         <>
-          <TextInput name="password" key="password" type="password" title="New password" form={form} onEnterKeyPress={handlePasswordEnterKeyPress} />
+          <TextInput
+            name="password"
+            key="password"
+            type="password"
+            title="New password"
+            form={form}
+            onEnterKeyPress={handlePasswordEnterKeyPress}
+          />
 
-          <TextInput name="reenteredPassword" key="reenteredPassword" type="password" title="Re-enter new password" reference={reenteredPasswordInputRef} form={form} onEnterKeyPress={handleReenteredPasswordEnterKeyPress} />
+          <TextInput
+            name="reenteredPassword"
+            key="reenteredPassword"
+            type="password"
+            title="Re-enter new password"
+            reference={reenteredPasswordInputRef}
+            form={form}
+            onEnterKeyPress={handleReenteredPasswordEnterKeyPress}
+          />
 
           <SubmitButton text="Save" form={form} onPress={onSignupSubmit} />
         </>
@@ -84,7 +137,9 @@ const Steps: React.FC<StepProps> = ({ onConfirmationSubmit, onRequestSubmit, onS
     default: {
       return (
         <>
-          <span className="text-base font-medium text-gray-700">Something went wrong.</span>
+          <span className="text-base font-medium text-gray-700">
+            Something went wrong.
+          </span>
         </>
       );
     }
@@ -115,7 +170,7 @@ export default function Signup() {
       [{ key: "code" }],
       [{ key: "password" }, { key: "reenteredPassword" }],
     ],
-    step
+    step,
   );
 
   const onGoogleAuthSignup = () => {
@@ -140,12 +195,16 @@ export default function Signup() {
         }
 
         case ErrorType.ALREADY_EXISTING: {
-          setError("That email is already in use. Please try signing in, or use a different email.");
+          setError(
+            "That email is already in use. Please try signing in, or use a different email.",
+          );
           return;
         }
 
         case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when createing the verification code.");
+          setError(
+            "Something went wrong when createing the verification code.",
+          );
           return;
         }
 
@@ -200,7 +259,13 @@ export default function Signup() {
     setStep(2);
   };
 
-  const handleSignupSubmit = async ({ name, email, code, password, reenteredPassword }: FormValues) => {
+  const handleSignupSubmit = async ({
+    name,
+    email,
+    code,
+    password,
+    reenteredPassword,
+  }: FormValues) => {
     setError(null);
 
     if (password !== reenteredPassword) {
@@ -228,7 +293,9 @@ export default function Signup() {
         }
 
         case ErrorType.ALREADY_EXISTING: {
-          setError("That email is already in use. Please try signing in, or use a different email.");
+          setError(
+            "That email is already in use. Please try signing in, or use a different email.",
+          );
           return;
         }
 
@@ -261,8 +328,24 @@ export default function Signup() {
   };
 
   return (
-    <AuthLayout description={descriptions[step]} error={error} onErrorClose={() => setError(null)} onGoogleAuthClick={onGoogleAuthSignup} page="signup" showGoogleAuth={showGoogleSignup} title="Create a new account">
-      <Steps onRequestSubmit={handleRequestSubmit} onConfirmationSubmit={handleConfirmationSubmit} onSignupSubmit={handleSignupSubmit} emailInputRef={emailInputRef} reenteredPasswordInputRef={reenteredPasswordInputRef} form={form} step={step} />
+    <AuthLayout
+      description={descriptions[step]}
+      error={error}
+      onErrorClose={() => setError(null)}
+      onGoogleAuthClick={onGoogleAuthSignup}
+      page="signup"
+      showGoogleAuth={showGoogleSignup}
+      title="Create a new account"
+    >
+      <Steps
+        onRequestSubmit={handleRequestSubmit}
+        onConfirmationSubmit={handleConfirmationSubmit}
+        onSignupSubmit={handleSignupSubmit}
+        emailInputRef={emailInputRef}
+        reenteredPasswordInputRef={reenteredPasswordInputRef}
+        form={form}
+        step={step}
+      />
     </AuthLayout>
   );
 }
