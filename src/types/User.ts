@@ -7,6 +7,6 @@ export type User = {
 };
 
 type Subscription = {
-  status: "active" | "past-due" | null;
+  status: "active" | "past_due" | null;
   subscription_id: string | null;
 };

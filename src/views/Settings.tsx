@@ -29,10 +29,12 @@ type SettingsContentProps = {
   page: SettingsPages;
   subscription: Subscription | null;
   cancelSubscriptionForm: FormHook;
+  payInvoiceForm: FormHook;
   onCancelSubscription: () => Promise<void>;
+  onPayInvoice: () => Promise<void>;
 };
 
-const SettingsContent: React.FC<SettingsContentProps> = ({ page, subscription, cancelSubscriptionForm, onCancelSubscription }) => {
+const SettingsContent: React.FC<SettingsContentProps> = ({ page, subscription, cancelSubscriptionForm, payInvoiceForm, onCancelSubscription, onPayInvoice }) => {
   switch (page) {
     case SettingsPages.Account: {
       return <span>Account</span>;
@@ -57,7 +59,11 @@ const SettingsContent: React.FC<SettingsContentProps> = ({ page, subscription, c
                       <div className="flex flex-col">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-semibold leading-6 text-gray-900">{subscription.name}</span>
-                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-md text-green-700 bg-green-50 ring-1 ring-inset ring-green-600/20">Active</span>
+                          {subscription.status === "active" ? (
+                            <span className="px-1.5 py-0.5 text-xs font-medium rounded-md text-green-700 bg-green-50 ring-1 ring-inset ring-green-600/20">Active</span>
+                          ) : subscription.status === "past_due" ? (
+                            <span className="px-1.5 py-0.5 text-xs font-medium rounded-md text-yellow-700 bg-yellow-50 ring-1 ring-inset ring-yellow-600/20">Past due</span>
+                          ) : null}
                         </div>
                         <span className="block truncate text-xs leading-5 text-gray-500">{subscription.price} SEK /mo</span>
                       </div>
@@ -80,8 +86,9 @@ const SettingsContent: React.FC<SettingsContentProps> = ({ page, subscription, c
                     <div className="mt-2 max-w-xl text-sm text-gray-500">
                       <span>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem neque iusto aspernatur cumque consectetur!</span>
                     </div>
-                    <div className="mt-5">
+                    <div className="flex gap-4 mt-5">
                       <SubmitButton text="Cancel" color="red" fullWidth={false} form={cancelSubscriptionForm} onPress={onCancelSubscription} />
+                      {subscription.status !== "past_due" ? null : <SubmitButton text="Pay now" fullWidth={false} form={payInvoiceForm} onPress={onPayInvoice} />}
                     </div>
                   </div>
                 </div>
@@ -128,6 +135,7 @@ export default function Settings() {
   const { user, signNewToken } = useAuth();
 
   const cancelSubscriptionForm = useForm();
+  const payInvoiceForm = useForm();
 
   const [breadcrumb, setBreadcrumb] = useState<Breadcrumb>([{ title: "Settings" }, { title: "Account" }]);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +168,8 @@ export default function Settings() {
     });
   }, [user]);
 
+  if (!user) return null;
+
   const handlePageChange = (item: NavigationItem) => {
     setBreadcrumb([{ title: "Settings" }, { title: item.name }]);
     setPage(item.to);
@@ -186,15 +196,31 @@ export default function Settings() {
     navigate(".", { replace: true, state: { notification } });
   };
 
+  const handlePayInvoice = async () => {
+    if (!subscription) return;
+
+    const response = await callAPI("/subscriptions/pay", {
+      id: subscription.id,
+    });
+
+    if (response === null || response.status === ResponseStatus.ERROR) {
+      setError("Something went wrong with the payment.");
+      return;
+    }
+
+    await signNewToken();
+
+    const notification = {
+      title: "Success!",
+      message: "Your subscription has been payed.",
+    };
+    navigate(".", { replace: true, state: { notification } });
+  };
+
   if (subscription === undefined) return <Loading />;
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={error}
-      onErrorClose={() => setError(null)}
-      // backgroundColor="white"
-    >
+    <Layout breadcrumb={breadcrumb} error={error} onErrorClose={() => setError(null)}>
       <div className="flex gap-8 w-full">
         <div className="flex w-full max-w-[20rem] flex-col bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">
@@ -214,7 +240,7 @@ export default function Settings() {
         </div>
 
         <div className="flex-1 py-4">
-          <SettingsContent page={page} subscription={subscription} cancelSubscriptionForm={cancelSubscriptionForm} onCancelSubscription={handleCancelSubscription} />
+          <SettingsContent page={page} subscription={subscription} cancelSubscriptionForm={cancelSubscriptionForm} payInvoiceForm={payInvoiceForm} onCancelSubscription={handleCancelSubscription} onPayInvoice={handlePayInvoice} />
         </div>
       </div>
     </Layout>
