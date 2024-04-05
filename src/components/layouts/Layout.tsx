@@ -17,14 +17,13 @@ type StateErrorProps = {
 type LayoutProps = {
   children?: ReactNode;
   breadcrumb: Breadcrumb | null;
-  backgroundColor?: string;
   error?: string | null;
   onErrorClose?: () => void;
 };
 
 const navigation = [{ name: "Dashboard", href: "/dashboard", current: true }];
 
-const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, error, onErrorClose }) => {
+const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, error, onErrorClose }) => {
   const { state } = useLocation();
   const { user, setToken } = useAuth();
 
@@ -181,7 +180,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb, backgroundColor, 
           )}
         </Disclosure>
 
-        <main className={`flex-1 flex flex-col overflow-auto bg-${backgroundColor || "gray-50"}`}>
+        <main className="flex-1 flex flex-col overflow-auto bg-gray-50">
           <header className="bg-white shadow z-10">
             <div className="w-full max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
               <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
