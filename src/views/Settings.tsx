@@ -143,12 +143,22 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
               </div>
             </div>
           ) : (
-            <span>
-              <span className="mr-1">No subscription.</span>
-              <Link to="/subscriptions">
-                <span className="underline">Start a subscription.</span>
-              </Link>
-            </span>
+            <div className="w-full max-w-2xl mx-auto">
+              <div className="rounded-lg shadow bg-white">
+                <div className="flex flex-col items-center py-12">
+                  <span className="block text-lg">No subscription</span>
+                  <div className="mt-4">
+                    <Link to="/subscriptions">
+                      <div className="px-4 py-2 rounded-md shadow-md bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:bg-primary-300">
+                        <span className="text-sm font-semibold text-white pointer-events-none">
+                          Start a subscription.
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </>
       );
