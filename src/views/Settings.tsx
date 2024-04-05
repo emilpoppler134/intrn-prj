@@ -4,7 +4,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import React, { SVGProps, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import SubmitButton from "../components/SubmitButton";
 import Layout from "../components/layouts/Layout";
@@ -17,10 +17,17 @@ import { callAPI } from "../utils/apiService";
 import { dynamicClassNames } from "../utils/dynamicClassNames";
 import { formatUnixDate, formatUnixDateTime } from "../utils/formatUnixDate";
 
-enum SettingsPages {
-  Account,
-  BillingHistory,
-  Subscription,
+const SETTINGS_PAGES = {
+  ACCOUNT: "account",
+  BILLING_HISTORY: "billing-history",
+  SUBSCRIPTION: "subscription",
+} as const;
+
+type ObjectValues<T> = T[keyof T];
+type SettingsPages = ObjectValues<typeof SETTINGS_PAGES>;
+
+function isSettingsPage(page: string): page is SettingsPages {
+  return Object.values(SETTINGS_PAGES).includes(page as SettingsPages);
 }
 
 type NavigationItem = {
@@ -47,15 +54,15 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
   onPayInvoice,
 }) => {
   switch (page) {
-    case SettingsPages.Account: {
+    case SETTINGS_PAGES.ACCOUNT: {
       return <span>Account</span>;
     }
 
-    case SettingsPages.BillingHistory: {
+    case SETTINGS_PAGES.BILLING_HISTORY: {
       return <span>Billing history</span>;
     }
 
-    case SettingsPages.Subscription: {
+    case SETTINGS_PAGES.SUBSCRIPTION: {
       return (
         <>
           {subscription ? (
@@ -156,35 +163,43 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
 const navigation: Array<NavigationItem> = [
   {
     name: "Account",
-    to: SettingsPages.Account,
+    to: SETTINGS_PAGES.ACCOUNT,
     icon: UserCircleIcon as React.FC<SVGProps<SVGElement>>,
   },
   {
     name: "Billing history",
-    to: SettingsPages.BillingHistory,
+    to: SETTINGS_PAGES.BILLING_HISTORY,
     icon: ClipboardIcon as React.FC<SVGProps<SVGElement>>,
   },
   {
     name: "Subscription",
-    to: SettingsPages.Subscription,
+    to: SETTINGS_PAGES.SUBSCRIPTION,
     icon: KeyIcon as React.FC<SVGProps<SVGElement>>,
   },
 ];
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, signNewToken } = useAuth();
 
   const cancelSubscriptionForm = useForm();
   const payInvoiceForm = useForm();
 
+  const pageProp = searchParams.get("page");
+
+  const defaultPage: SettingsPages =
+    pageProp && isSettingsPage(pageProp)
+      ? (pageProp as SettingsPages)
+      : SETTINGS_PAGES.ACCOUNT;
+
   const [breadcrumb, setBreadcrumb] = useState<Breadcrumb>([
     { title: "Settings" },
     { title: "Account" },
   ]);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<SettingsPages>(SettingsPages.Account);
 
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<SettingsPages>(defaultPage);
   const [subscription, setSubscription] = useState<
     Subscription | null | undefined
   >(undefined);
@@ -218,6 +233,7 @@ export default function Settings() {
 
   const handlePageChange = (item: NavigationItem) => {
     setBreadcrumb([{ title: "Settings" }, { title: item.name }]);
+    setSearchParams({ page: item.to });
     setPage(item.to);
   };
 
@@ -279,7 +295,7 @@ export default function Settings() {
                 key={item.name}
                 className={dynamicClassNames(
                   item.to === page ? "bg-primary-100 hover:bg-primary-100" : "",
-                  "flex items-center w-full p-3 leading-tight rounded-lg text-start hover:bg-gray-100",
+                  "flex items-center w-full p-3 leading-tight rounded-lg text-start hover:bg-gray-100"
                 )}
                 onClick={() => handlePageChange(item)}
               >
