@@ -318,7 +318,7 @@ export default function Settings() {
                 key={item.name}
                 className={dynamicClassNames(
                   item.to === page ? "bg-primary-100 hover:bg-primary-100" : "",
-                  "flex items-center w-full p-3 leading-tight rounded-lg text-start hover:bg-gray-100"
+                  "flex items-center w-full p-3 leading-tight rounded-lg text-start hover:bg-gray-100",
                 )}
                 onClick={() => handlePageChange(item)}
               >

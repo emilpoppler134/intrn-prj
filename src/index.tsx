@@ -10,7 +10,7 @@ import "./assets/main.css";
 const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 
 root.render(
@@ -20,5 +20,5 @@ root.render(
         <Routes />
       </QueryClientProvider>
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

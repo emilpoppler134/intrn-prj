@@ -189,7 +189,7 @@ export default function Signup() {
       [{ key: "code" }],
       [{ key: "password" }, { key: "reenteredPassword" }],
     ],
-    step
+    step,
   );
 
   const requestMutation = useMutation({

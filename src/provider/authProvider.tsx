@@ -28,7 +28,7 @@ const AuthContext = createContext<AuthContextProps>(null);
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, _setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    localStorage.getItem("token"),
   );
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
@@ -69,7 +69,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken,
       signNewToken,
     }),
-    [token, user, signNewToken]
+    [token, user, signNewToken],
   );
 
   return (

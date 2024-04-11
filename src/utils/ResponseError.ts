@@ -5,7 +5,7 @@ export class ResponseError extends Error {
 
   constructor(
     status: ErrorCode = ErrorCode.SERVER_ERROR,
-    message: string = "Something went wrong."
+    message: string = "Something went wrong.",
   ) {
     super(message);
     this.status = status;

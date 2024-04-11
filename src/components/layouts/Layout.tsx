@@ -106,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({
                               item.current
                                 ? "bg-gray-900 text-white"
                                 : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                              "rounded-md px-3 py-2 text-sm font-medium"
+                              "rounded-md px-3 py-2 text-sm font-medium",
                             )}
                             aria-current={item.current ? "page" : undefined}
                           >
@@ -156,7 +156,7 @@ const Layout: React.FC<LayoutProps> = ({
                                   to="/settings"
                                   className={dynamicClassNames(
                                     active ? "bg-gray-100" : "",
-                                    "block px-4 py-2 text-sm text-gray-700"
+                                    "block px-4 py-2 text-sm text-gray-700",
                                   )}
                                 >
                                   <span className="select-none">Settings</span>
@@ -169,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({
                                   onClick={handleLogout}
                                   className={dynamicClassNames(
                                     active ? "bg-gray-100" : "",
-                                    "block w-full px-4 py-2 text-sm text-left text-gray-700"
+                                    "block w-full px-4 py-2 text-sm text-left text-gray-700",
                                   )}
                                 >
                                   <span className="select-none">Sign out</span>
@@ -212,7 +212,7 @@ const Layout: React.FC<LayoutProps> = ({
                         item.current
                           ? "bg-gray-900 text-white"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                        "block rounded-md px-3 py-2 text-base font-medium"
+                        "block rounded-md px-3 py-2 text-base font-medium",
                       )}
                       aria-current={item.current ? "page" : undefined}
                     >

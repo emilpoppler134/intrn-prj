@@ -19,7 +19,7 @@ type ErrorResponseData = { message: string };
 
 export async function callAPI<T extends JSONValue | void = void>(
   url: string,
-  body?: Body
+  body?: Body,
 ): Promise<T> {
   const token = localStorage.getItem("token");
 

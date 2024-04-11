@@ -46,7 +46,7 @@ export default function Dashboard() {
   const handleOpen = () => {
     if (user.subscription.status === null) {
       return setCustomError(
-        new ExtendedError("You need a subscription to create a bot.", true)
+        new ExtendedError("You need a subscription to create a bot.", true),
       );
     }
 

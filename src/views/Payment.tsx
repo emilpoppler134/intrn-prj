@@ -16,7 +16,7 @@ export default function Payment() {
   const { search } = useLocation();
 
   const clientSecret = new URLSearchParams(search).get(
-    "payment_intent_client_secret"
+    "payment_intent_client_secret",
   );
   const productId = new URLSearchParams(search).get("product_id");
 

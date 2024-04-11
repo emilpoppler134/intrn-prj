@@ -162,7 +162,7 @@ export default function ForgotPassword() {
       [{ key: "code" }],
       [{ key: "password" }, { key: "reenteredPassword" }],
     ],
-    step
+    step,
   );
 
   const requestMutation = useMutation({
