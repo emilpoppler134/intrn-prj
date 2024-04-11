@@ -1,12 +1,12 @@
-import { useEffect } from "react";
 import { useStripe } from "@stripe/react-stripe-js";
+import { useEffect } from "react";
 
-type PaymentResultProps = {
+type PaymentResultHandlerProps = {
   clientSecret: string;
   callback: (status: string) => void;
 };
 
-const PaymentResult: React.FC<PaymentResultProps> = ({
+const PaymentResultHandler: React.FC<PaymentResultHandlerProps> = ({
   clientSecret,
   callback,
 }) => {
@@ -25,4 +25,4 @@ const PaymentResult: React.FC<PaymentResultProps> = ({
   return null;
 };
 
-export default PaymentResult;
+export default PaymentResultHandler;

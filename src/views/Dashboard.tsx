@@ -1,6 +1,7 @@
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { PlusIcon, UserIcon } from "@heroicons/react/24/solid";
-import { SVGProps, useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { SVGProps, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BotItem from "../components/BotItem";
 import Loading from "../components/Loading";
@@ -10,56 +11,43 @@ import WarningAlert from "../components/WarningAlert";
 import Layout from "../components/layouts/Layout";
 import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import {
-  ErrorType,
-  ResponseStatus,
-  ValidDataResponse,
-} from "../types/ApiResponses";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
+import { ErrorCode } from "../types/StatusCode";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
+
+type MutationParams = {
+  name: string;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  const [open, setOpen] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [bots, setBots] = useState<Array<Bot> | null | undefined>(undefined);
+  const { user } = useAuth();
+  if (!user) return null;
 
   const form = useForm([[{ key: "name" }]]);
 
-  useEffect(() => {
-    if (
-      user === null ||
-      user === undefined ||
-      user.subscription.status === null
-    ) {
-      setBots([]);
-      return;
-    }
+  const [open, setOpen] = useState<boolean>(false);
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
-    callAPI<Array<Bot>>("/bots/list").then((response) => {
-      if (response === null || response.status === ResponseStatus.ERROR) {
-        setError("Something went wrong.");
-        setBots(null);
-        return;
-      }
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["botList"],
+    queryFn: () => callAPI<Array<Bot>>("/bots/list"),
+  });
 
-      const validDataResponse = response as ValidDataResponse & {
-        data: Array<Bot>;
-      };
-
-      setBots(validDataResponse.data);
-    });
-  }, [user]);
-
-  if (!user) return null;
+  const createMutation = useMutation({
+    mutationFn: ({ name }: MutationParams) =>
+      callAPI<Bot>("/bots/create", { name }),
+  });
 
   const handleOpen = () => {
     if (user.subscription.status === null) {
-      setError("You need a subscription to create a bot.");
-      return;
+      return setCustomError(
+        new ExtendedError("You need a subscription to create a bot.", true)
+      );
     }
 
     setOpen(true);
@@ -75,60 +63,56 @@ export default function Dashboard() {
   };
 
   const handleCreate = async ({ name }: FormValues) => {
-    const response = await callAPI<{ id: string }>("/bots/create", { name });
+    setCustomError(null);
 
-    if (response === null) {
-      setError("Something went wrong.");
-      return;
-    }
+    try {
+      const response = await createMutation.mutateAsync({ name });
 
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.ALREADY_EXISTING: {
-          form.setInvalid("name", true, "That name already exists");
-          return;
+      const notification = {
+        title: "Success!",
+        message: "You have created a new bot.",
+      };
+
+      navigate(`/bots/${response.id}/config`, {
+        state: { notification },
+      });
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        switch (err.status) {
+          case ErrorCode.CONFLICT: {
+            console.log(err.message);
+            return;
+          }
         }
 
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+        return setCustomError(new ExtendedError(err.message, true));
+      }
+
+      if (err instanceof Error) {
+        return setCustomError(new ExtendedError(err.message, false));
       }
     }
-
-    const validDataResponse = response as ValidDataResponse & {
-      data: { id: string };
-    };
-
-    const notification = {
-      title: "Success!",
-      message: "You have created a new bot.",
-    };
-
-    navigate(`/bots/${validDataResponse.data.id}/config`, {
-      state: { notification },
-    });
   };
 
   const breadcrumb: Breadcrumb = [{ title: "Overview" }];
 
-  if (bots === null) return <Layout breadcrumb={null} error={error} />;
-  if (bots === undefined) return <Loading />;
+  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (isLoading || data === undefined) return <Loading />;
 
   return (
     <Layout
       breadcrumb={breadcrumb}
-      error={error}
-      onErrorClose={() => setError(null)}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
     >
       <div className="mx-auto max-w-2xl">
-        {bots.length > 0 ? (
+        {data.length > 0 ? (
           <div>
             <span className="px-p text-xl">Avaliable chatbots</span>
 
             <div className="grid grid-cols-4 gap-12 mt-8">
-              {bots.map((item) => (
-                <BotItem key={item._id} bot={item} />
+              {data.map((item) => (
+                <BotItem key={item.id} bot={item} />
               ))}
 
               <div className="flex flex-col">

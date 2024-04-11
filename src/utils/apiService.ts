@@ -1,62 +1,68 @@
-import axios, { AxiosResponse } from "axios";
 import { API_ADDRESS } from "../config";
-import {
-  ApiResponse,
-  ErrorResponse,
-  ErrorType,
-  ResponseStatus,
-  ValidDataResponse,
-  ValidResponse,
-} from "../types/ApiResponses";
+import { ErrorCode, SuccessCode } from "../types/StatusCode";
+import { ResponseError } from "./ResponseError";
 
-type Body = { [key: string]: string | undefined };
+type JSONValue = string | number | boolean | null | JSONObject | JSONArray;
 
-export async function callAPI<T>(
+interface JSONObject {
+  [key: string]: JSONValue;
+}
+
+interface JSONArray extends Array<JSONValue> {}
+
+type Body = {
+  [key: string]: string | undefined | null;
+};
+
+type CustomResponse = Response & { status: SuccessCode | ErrorCode };
+type ErrorResponseData = { message: string };
+
+export async function callAPI<T extends JSONValue | void = void>(
   url: string,
-  body?: Body,
-): Promise<
-  ValidResponse | (ValidDataResponse & { data: T }) | ErrorResponse | null
-> {
-  try {
-    const axiosResponse: AxiosResponse = await axios.post(
-      API_ADDRESS + url,
-      body,
-    );
-    const response: ApiResponse = axiosResponse.data;
+  body?: Body
+): Promise<T> {
+  const token = localStorage.getItem("token");
 
-    if (response === null) {
-      return null;
-    }
+  const headers = new Headers({ "Content-Type": "application/json" });
 
-    if (response.status === ResponseStatus.ERROR) {
-      if (response.error === ErrorType.UNAUTHORIZED) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
-      if (response.error === ErrorType.NO_SUBSCRIPTION) {
-        window.location.href = "/dashboard";
-      }
-      return {
-        status: ResponseStatus.ERROR,
-        error: response.error,
-      } as ErrorResponse;
-    }
-
-    const isValidDataResponse = ((
-      r: ValidResponse | ValidDataResponse,
-    ): r is ValidDataResponse => {
-      return (r as ValidDataResponse).data !== undefined;
-    })(response);
-
-    if (!isValidDataResponse) {
-      return { status: ResponseStatus.OK } as ValidResponse;
-    }
-
-    return {
-      status: ResponseStatus.OK,
-      data: response.data,
-    } as ValidDataResponse & { data: T };
-  } catch {
-    return null;
+  if (token !== null) {
+    headers.append("Authorization", "Bearer " + token);
   }
+
+  const options: RequestInit = {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body !== undefined ? body : {}),
+  };
+
+  const response: CustomResponse = await fetch(API_ADDRESS + url, options);
+
+  if (response.status === SuccessCode.NO_CONTENT) return undefined as T;
+
+  const data: T | ErrorResponseData = await response.json();
+
+  if (
+    response.status === SuccessCode.OK ||
+    response.status === SuccessCode.CREATED
+  ) {
+    const validData = data;
+    return validData as T;
+  }
+
+  const error = data as ErrorResponseData;
+
+  switch (response.status) {
+    case ErrorCode.UNAUTHORIZED: {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+      break;
+    }
+
+    case ErrorCode.FORBIDDEN: {
+      window.location.href = "/dashboard";
+      break;
+    }
+  }
+
+  throw new ResponseError(response.status, error.message);
 }

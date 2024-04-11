@@ -5,23 +5,34 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/solid";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
 import { useAuth } from "../../provider/authProvider";
 import { Breadcrumb } from "../../types/Breadcrumb";
+import { ExtendedError } from "../../utils/ExtendedError";
 import { dynamicClassNames } from "../../utils/dynamicClassNames";
 import ErrorAlert from "./../ErrorAlert";
-import Notification, { NotificationProps } from "./../Notification";
+import Notification from "./../Notification";
+
+type StateContent = {
+  stateError: StateErrorProps | null;
+  notification: NotificationProps | null;
+};
 
 type StateErrorProps = {
   message: string;
 };
 
+type NotificationProps = {
+  title: string;
+  message: string;
+};
+
 type LayoutProps = {
   children?: ReactNode;
-  breadcrumb: Breadcrumb | null;
-  error?: string | null;
+  breadcrumb?: Breadcrumb;
+  error?: Error | null;
   onErrorClose?: () => void;
 };
 
@@ -34,21 +45,20 @@ const Layout: React.FC<LayoutProps> = ({
   onErrorClose,
 }) => {
   const { state } = useLocation();
+
   const { user, setToken } = useAuth();
+  if (!user) return null;
 
-  const [notification, setNotification] = useState<NotificationProps | null>(
-    null,
-  );
-  const [stateError, setStateError] = useState<StateErrorProps | null>(null);
+  const { stateError, notification } = ((): StateContent => {
+    if (!state) return { stateError: null, notification: null };
 
-  useEffect(() => {
-    if (state) {
-      if (state.notification) setNotification(state.notification);
-      if (state.error) setStateError(state.error);
+    const stateError = state.error;
+    const notification = state.notification;
 
-      window.history.replaceState({}, "");
-    }
-  }, [state]);
+    window.history.replaceState({}, "");
+
+    return { stateError, notification };
+  })();
 
   const handleLogout = async () => {
     setToken(null);
@@ -58,11 +68,14 @@ const Layout: React.FC<LayoutProps> = ({
     onErrorClose?.();
   };
 
-  if (breadcrumb === null) {
+  const extendedError =
+    error instanceof ExtendedError
+      ? error
+      : error && new ExtendedError(error.message);
+
+  if (breadcrumb === undefined) {
     breadcrumb = [{ title: "Error" }];
   }
-
-  if (!user) return null;
 
   return (
     <>
@@ -93,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({
                               item.current
                                 ? "bg-gray-900 text-white"
                                 : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                              "rounded-md px-3 py-2 text-sm font-medium",
+                              "rounded-md px-3 py-2 text-sm font-medium"
                             )}
                             aria-current={item.current ? "page" : undefined}
                           >
@@ -143,7 +156,7 @@ const Layout: React.FC<LayoutProps> = ({
                                   to="/settings"
                                   className={dynamicClassNames(
                                     active ? "bg-gray-100" : "",
-                                    "block px-4 py-2 text-sm text-gray-700",
+                                    "block px-4 py-2 text-sm text-gray-700"
                                   )}
                                 >
                                   <span className="select-none">Settings</span>
@@ -156,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({
                                   onClick={handleLogout}
                                   className={dynamicClassNames(
                                     active ? "bg-gray-100" : "",
-                                    "block w-full px-4 py-2 text-sm text-left text-gray-700",
+                                    "block w-full px-4 py-2 text-sm text-left text-gray-700"
                                   )}
                                 >
                                   <span className="select-none">Sign out</span>
@@ -199,7 +212,7 @@ const Layout: React.FC<LayoutProps> = ({
                         item.current
                           ? "bg-gray-900 text-white"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                        "block rounded-md px-3 py-2 text-base font-medium",
+                        "block rounded-md px-3 py-2 text-base font-medium"
                       )}
                       aria-current={item.current ? "page" : undefined}
                     >
@@ -302,16 +315,16 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
         </main>
 
-        {!error ? null : (
-          <ErrorAlert message={error} onClose={handleErrorClose} />
+        {!extendedError ? null : extendedError.closeable ? (
+          <ErrorAlert
+            message={extendedError.message}
+            onClose={handleErrorClose}
+          />
+        ) : (
+          <ErrorAlert message={extendedError.message} />
         )}
 
-        {!stateError ? null : (
-          <ErrorAlert
-            message={stateError.message}
-            onClose={() => setStateError(null)}
-          />
-        )}
+        {!stateError ? null : <ErrorAlert message={stateError.message} />}
 
         {!notification ? null : (
           <Notification

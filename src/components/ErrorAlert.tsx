@@ -1,15 +1,15 @@
-import React from "react";
-import { XCircleIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon } from "@heroicons/react/24/solid";
+import React from "react";
 
 type Props = {
   message: string;
-  onClose(): void;
+  onClose?: () => void;
 };
 
 const ErrorAlert: React.FC<Props> = ({ message, onClose }) => {
   const handleButtonClick = () => {
-    onClose();
+    onClose?.();
   };
 
   return (
@@ -24,12 +24,15 @@ const ErrorAlert: React.FC<Props> = ({ message, onClose }) => {
               <span>{message}</span>
             </span>
           </div>
-          <button
-            className="absolute top-0 bottom-0 right-0 px-4 py-2"
-            onClick={handleButtonClick}
-          >
-            <XMarkIcon className="h-6 w-6 stroke-red-500" />
-          </button>
+
+          {!onClose ? null : (
+            <button
+              className="absolute top-0 bottom-0 right-0 px-4 py-2"
+              onClick={handleButtonClick}
+            >
+              <XMarkIcon className="h-6 w-6 stroke-red-500" />
+            </button>
+          )}
         </div>
       </div>
     </div>

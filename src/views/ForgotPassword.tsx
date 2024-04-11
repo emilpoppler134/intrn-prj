@@ -1,10 +1,12 @@
+import { useMutation } from "@tanstack/react-query";
 import { MutableRefObject, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SubmitButton from "../components/SubmitButton";
 import TextInput from "../components/TextInput";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { FormHook, FormValues, useForm } from "../hooks/useForm";
-import { ErrorType, ResponseStatus } from "../types/ApiResponses";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import { emailValidation } from "../utils/validation";
 
@@ -13,6 +15,21 @@ const descriptions: Array<string> = [
   "Check your email inbox for a verification code. Enter the code below to proceed with resetting your password.",
   "Enter a new password for your account.",
 ];
+
+type RequestParams = {
+  email: string;
+};
+
+type ConfirmParams = {
+  email: string;
+  code: string;
+};
+
+type SubmitParams = {
+  email: string;
+  code: string;
+  password: string;
+};
 
 type StepProps = {
   onConfirmationSubmit: (values: FormValues) => Promise<void>;
@@ -129,7 +146,7 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ExtendedError | null>(null);
 
   const reenteredPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -145,86 +162,58 @@ export default function ForgotPassword() {
       [{ key: "code" }],
       [{ key: "password" }, { key: "reenteredPassword" }],
     ],
-    step,
+    step
   );
+
+  const requestMutation = useMutation({
+    mutationFn: ({ email }: RequestParams) =>
+      callAPI("/users/forgot-password-request", { email }),
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: ({ email, code }: ConfirmParams) =>
+      callAPI("/users/forgot-password-confirmation", { email, code }),
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: ({ email, code, password }: SubmitParams) =>
+      callAPI("/users/forgot-password-submit", { email, code, password }),
+  });
 
   const handleRequestSubmit = async ({ email }: FormValues) => {
     setError(null);
 
-    const response = await callAPI("/users/forgot-password-request", { email });
+    try {
+      await requestMutation.mutateAsync({ email });
 
-    if (response === null) {
-      setError("Something went wrong when the request was sent.");
-      return;
-    }
+      setStep(1);
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setError(new ExtendedError(err.message, true));
+      }
 
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.INVALID_PARAMS: {
-          setError("Invalid parameters.");
-          return;
-        }
-
-        case ErrorType.NO_RESULT: {
-          setError("A user with that email doesn't exist.");
-          return;
-        }
-
-        case ErrorType.DATABASE_ERROR: {
-          setError(
-            "Something went wrong when createing the verification code.",
-          );
-          return;
-        }
-
-        case ErrorType.MAIL_ERROR: {
-          setError("Something went wrong when sending the mail.");
-          return;
-        }
-
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+      if (err instanceof Error) {
+        return setError(new ExtendedError(err.message, false));
       }
     }
-
-    setStep(1);
   };
 
   const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
     setError(null);
 
-    const response = await callAPI("/users/forgot-password-confirmation", {
-      email,
-      code,
-    });
+    try {
+      await confirmMutation.mutateAsync({ email, code });
 
-    if (response === null) {
-      setError("Something went wrong when the request was sent.");
-      return;
-    }
+      setStep(2);
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setError(new ExtendedError(err.message, true));
+      }
 
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.INVALID_PARAMS: {
-          setError("Invalid parameters.");
-          return;
-        }
-
-        case ErrorType.NO_RESULT: {
-          setError("The verification code is incorrect.");
-          return;
-        }
-
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+      if (err instanceof Error) {
+        return setError(new ExtendedError(err.message, false));
       }
     }
-
-    setStep(2);
   };
 
   const handleResetSubmit = async ({
@@ -236,51 +225,22 @@ export default function ForgotPassword() {
     setError(null);
 
     if (password !== reenteredPassword) {
-      setError("Passwords doesn't match.");
-      return;
+      return setError(new ExtendedError("Passwords doesn't match.", true));
     }
 
-    const response = await callAPI("/users/forgot-password-submit", {
-      email,
-      code,
-      password,
-    });
+    try {
+      await submitMutation.mutateAsync({ email, code, password });
 
-    if (response === null) {
-      setError("Something went wrong when the request was sent.");
-      return;
-    }
+      navigate("/login");
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setError(new ExtendedError(err.message, true));
+      }
 
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.INVALID_PARAMS: {
-          setError("Invalid parameters.");
-          return;
-        }
-
-        case ErrorType.NO_RESULT: {
-          setError("The email or the verification code is incorrect.");
-          return;
-        }
-
-        case ErrorType.HASH_PARSING: {
-          setError("Couldn't hash the password you provided.");
-          return;
-        }
-
-        case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when updating the password.");
-          return;
-        }
-
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+      if (err instanceof Error) {
+        return setError(new ExtendedError(err.message, false));
       }
     }
-
-    navigate("/login");
   };
 
   return (

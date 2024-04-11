@@ -1,5 +1,5 @@
 import { PaperClipIcon } from "@heroicons/react/24/solid";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import CancelButton from "../components/CancelButton";
 import Loading from "../components/Loading";
@@ -9,11 +9,6 @@ import TextArea from "../components/TextArea";
 import TextInput from "../components/TextInput";
 import Layout from "../components/layouts/Layout";
 import { FormValues, useForm } from "../hooks/useForm";
-import {
-  ErrorType,
-  ResponseStatus,
-  ValidDataResponse,
-} from "../types/ApiResponses";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { callAPI } from "../utils/apiService";
@@ -22,47 +17,14 @@ export default function BotConfig() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [error, setError] = useState<string | null>(null);
-  const [bot, setBot] = useState<Bot | null | undefined>(undefined);
-
   const form = useForm([
     [{ key: "name" }, { key: "personality", validation: null }],
   ]);
 
-  useEffect(() => {
-    callAPI<Bot>("/bots/find", { id }).then((response) => {
-      if (response === null) {
-        setError("Something went wrong.");
-        setBot(null);
-        return;
-      }
-
-      if (response.status === ResponseStatus.ERROR) {
-        setBot(null);
-
-        switch (response.error) {
-          case ErrorType.INVALID_PARAMS: {
-            setError("Invalid id.");
-            return;
-          }
-
-          case ErrorType.NO_RESULT: {
-            setError("No bot with that Id.");
-            return;
-          }
-
-          default: {
-            setError("Something went wrong.");
-            return;
-          }
-        }
-      }
-
-      const validDataResponse = response as ValidDataResponse & { data: Bot };
-
-      setBot(validDataResponse.data);
-    });
-  }, [id]);
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["botConfig"],
+    queryFn: () => callAPI<Bot>("/bots/find", { id }),
+  });
 
   const handleCancel = () => {
     form.clearData();
@@ -76,11 +38,11 @@ export default function BotConfig() {
     });
   };
 
-  if (bot === null) return <Layout breadcrumb={null} error={error} />;
-  if (bot === undefined) return <Loading />;
+  if (error !== null) return <Layout error={error} />;
+  if (isLoading || data === undefined) return <Loading />;
 
   const breadcrumb: Breadcrumb = [
-    { title: bot.name, to: `/bots/${id}` },
+    { title: data.name, to: `/bots/${data.id}` },
     { title: "Config" },
   ];
 

@@ -1,165 +1,72 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
 import PaymentForm from "../components/PaymentForm";
-import PaymentResult from "../components/PaymentResult";
 import Layout from "../components/layouts/Layout";
-import { STRIPE_PUBLIC_KEY } from "../config";
-import { useAuth } from "../provider/authProvider";
-import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
+import { APP_ADDRESS, STRIPE_PUBLIC_KEY } from "../config";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { PaymentIntent } from "../types/PaymentIntent";
 import { Product } from "../types/Product";
 import { callAPI } from "../utils/apiService";
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 export default function Payment() {
-  const navigate = useNavigate();
-  const { state, pathname, search } = useLocation();
-  const { signNewToken } = useAuth();
+  const { search } = useLocation();
 
-  const resultCallback = pathname.includes("/result");
-  const clientSecretProp = new URLSearchParams(search).get(
-    "payment_intent_client_secret",
+  const clientSecret = new URLSearchParams(search).get(
+    "payment_intent_client_secret"
   );
-  const productIdProp = new URLSearchParams(search).get("productId");
+  const productId = new URLSearchParams(search).get("product_id");
 
-  const [error, setError] = useState<string | null>(null);
-  const [paymentIntent, setPaymentIntent] = useState<
-    PaymentIntent | null | undefined
-  >(undefined);
-  const [product, setProduct] = useState<Product | null | undefined>(undefined);
+  if (!clientSecret || !productId) return null;
 
-  useEffect(() => {
-    if (resultCallback || !state || !state.paymentIntent) {
-      setPaymentIntent(null);
-    } else {
-      setPaymentIntent(state.paymentIntent);
-      window.history.replaceState({}, "");
-    }
-  }, [resultCallback, state]);
-
-  useEffect(() => {
-    if (!resultCallback && (!state || !state.paymentIntent)) {
-      setProduct(null);
-      return;
-    }
-
-    const id = resultCallback ? productIdProp : state.paymentIntent.productId;
-
-    callAPI<Product>("/products/find", { id }).then((response) => {
-      if (response === null || response.status === ResponseStatus.ERROR) {
-        setProduct(null);
-        return;
-      }
-
-      const validDataResponse = response as ValidDataResponse & {
-        data: Product;
-      };
-
-      setProduct(validDataResponse.data);
-    });
-  }, [resultCallback, productIdProp, state]);
-
-  const callback = async (status: string) => {
-    switch (status) {
-      case "succeeded": {
-        const response = await callAPI("/subscriptions/confirm");
-
-        if (response === null || response.status === ResponseStatus.ERROR) {
-          const error = {
-            message:
-              "Something went wrong. Please try signing out and signing in again.",
-          };
-          navigate("/dashboard/", { replace: true, state: { error } });
-          return;
-        }
-
-        await signNewToken();
-
-        const notification = {
-          title: "Success!",
-          message: "Your subscription has been activated.",
-        };
-        navigate("/dashboard", { replace: true, state: { notification } });
-        break;
-      }
-
-      case "requires_payment_method": {
-        const error = {
-          message: "Payment failed. Please try another payment method.",
-        };
-        navigate("/subscriptions/payment", {
-          replace: true,
-          state: {
-            error,
-            paymentIntent: {
-              productId: productIdProp,
-              clientSecret: clientSecretProp,
-            },
-          },
-        });
-        break;
-      }
-
-      default: {
-        const error = {
-          message: "Something went wrong.",
-        };
-        navigate("/subscriptions/payment", {
-          replace: true,
-          state: {
-            error,
-            paymentIntent: {
-              productId: productIdProp,
-              clientSecret: clientSecretProp,
-            },
-          },
-        });
-        break;
-      }
-    }
-  };
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["product"],
+    queryFn: () => callAPI<Product>("/products/find", { id: productId }),
+  });
 
   const breadcrumb: Breadcrumb = [
     { title: "Subscriptions", to: "/subscriptions" },
     { title: "Payment" },
   ];
 
-  if (
-    !stripePromise ||
-    product === null ||
-    (resultCallback && (clientSecretProp === null || productIdProp === null)) ||
-    (!resultCallback && paymentIntent === null)
-  )
-    return <Layout breadcrumb={breadcrumb} error={"Something went wrong."} />;
-  if ((!resultCallback && paymentIntent === undefined) || product === undefined)
-    return <Loading />;
+  if (!stripePromise || clientSecret === null || productId === null) {
+    return (
+      <Layout
+        breadcrumb={breadcrumb}
+        error={new Error("Something went wrong.")}
+      />
+    );
+  }
 
-  const clientSecret = resultCallback
-    ? clientSecretProp ?? undefined
-    : paymentIntent
-      ? paymentIntent.clientSecret
-      : undefined;
+  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (isLoading || data === undefined) return <Loading />;
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={error}
-      onErrorClose={() => setError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        {!resultCallback
-          ? paymentIntent && <PaymentForm product={product} />
-          : clientSecretProp && (
-              <PaymentResult
-                clientSecret={clientSecretProp}
-                callback={callback}
-              />
-            )}
+        <div className="app-payment flex justify-between w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-96">
+            <div className="mt-4">
+              <p className="text-lg font-semibold text-gray-600">{data.name}</p>
+              <p className="mt-2 flex items-baseline justify-start gap-x-2">
+                <span className="text-5xl font-bold tracking-tight text-gray-900">
+                  {data.price} SEK
+                </span>
+                <span className="text-sm font-semibold leading-6 tracking-wide text-gray-600">
+                  /mo
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="w-full max-w-96 z-10">
+            <PaymentForm
+              return_url={`${APP_ADDRESS}/subscriptions/payment/result?product_id=${data.id}`}
+            />
+          </div>
+        </div>
       </Elements>
     </Layout>
   );

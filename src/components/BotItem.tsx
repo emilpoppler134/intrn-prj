@@ -10,7 +10,7 @@ type BotItemProps = {
 const BotItem: React.FC<BotItemProps> = ({ bot }) => {
   return (
     <div className="flex flex-col">
-      <Link to={`/bots/${bot._id}`} className="group">
+      <Link to={`/bots/${bot.id}`} className="group">
         <div className="mb-1">
           <span className="text-base text-gray-700">{bot.name}</span>
         </div>
@@ -30,7 +30,7 @@ const BotItem: React.FC<BotItemProps> = ({ bot }) => {
           </div>
         </div>
       </Link>
-      <Link to={`/bots/${bot._id}/config`}>
+      <Link to={`/bots/${bot.id}/config`}>
         <span className="text-base font-medium text-primary-600 hover:underline dark:text-primary-500">
           Config
         </span>

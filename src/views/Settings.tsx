@@ -3,16 +3,18 @@ import {
   KeyIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/solid";
-import React, { SVGProps, useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import React, { SVGProps, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import SubmitButton from "../components/SubmitButton";
 import Layout from "../components/layouts/Layout";
 import { FormHook, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { Subscription } from "../types/Subscription";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import { dynamicClassNames } from "../utils/dynamicClassNames";
 import { formatUnixDate, formatUnixDateTime } from "../utils/formatUnixDate";
@@ -25,10 +27,6 @@ const SETTINGS_PAGES = {
 
 type ObjectValues<T> = T[keyof T];
 type SettingsPages = ObjectValues<typeof SETTINGS_PAGES>;
-
-function isSettingsPage(page: string): page is SettingsPages {
-  return Object.values(SETTINGS_PAGES).includes(page as SettingsPages);
-}
 
 type NavigationItem = {
   name: string;
@@ -44,6 +42,32 @@ type SettingsContentProps = {
   onCancelSubscription: () => Promise<void>;
   onPayInvoice: () => Promise<void>;
 };
+
+type MutationParams = {
+  id: string;
+};
+
+function isSettingsPage(page: string): page is SettingsPages {
+  return Object.values(SETTINGS_PAGES).includes(page as SettingsPages);
+}
+
+const navigation: Array<NavigationItem> = [
+  {
+    name: "Account",
+    to: SETTINGS_PAGES.ACCOUNT,
+    icon: UserCircleIcon as React.FC<SVGProps<SVGElement>>,
+  },
+  {
+    name: "Billing history",
+    to: SETTINGS_PAGES.BILLING_HISTORY,
+    icon: ClipboardIcon as React.FC<SVGProps<SVGElement>>,
+  },
+  {
+    name: "Subscription",
+    to: SETTINGS_PAGES.SUBSCRIPTION,
+    icon: KeyIcon as React.FC<SVGProps<SVGElement>>,
+  },
+];
 
 const SettingsContent: React.FC<SettingsContentProps> = ({
   page,
@@ -170,28 +194,15 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
   }
 };
 
-const navigation: Array<NavigationItem> = [
-  {
-    name: "Account",
-    to: SETTINGS_PAGES.ACCOUNT,
-    icon: UserCircleIcon as React.FC<SVGProps<SVGElement>>,
-  },
-  {
-    name: "Billing history",
-    to: SETTINGS_PAGES.BILLING_HISTORY,
-    icon: ClipboardIcon as React.FC<SVGProps<SVGElement>>,
-  },
-  {
-    name: "Subscription",
-    to: SETTINGS_PAGES.SUBSCRIPTION,
-    icon: KeyIcon as React.FC<SVGProps<SVGElement>>,
-  },
-];
-
 export default function Settings() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
   const { user, signNewToken } = useAuth();
+  if (!user) return null;
+
+  const subscription = user.subscription;
+  const hasSubscription = subscription.status !== null;
 
   const cancelSubscriptionForm = useForm();
   const payInvoiceForm = useForm();
@@ -208,38 +219,27 @@ export default function Settings() {
     { title: "Account" },
   ]);
 
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<SettingsPages>(defaultPage);
-  const [subscription, setSubscription] = useState<
-    Subscription | null | undefined
-  >(undefined);
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["subscriptionSettings"],
+    queryFn: () =>
+      callAPI<Subscription>("/subscriptions/find", {
+        id: subscription.subscription_id,
+      }),
+    enabled: hasSubscription,
+  });
 
-    if (user.subscription.subscription_id === null) {
-      setSubscription(null);
-      return;
-    }
+  const cancelMutation = useMutation({
+    mutationFn: ({ id }: MutationParams) =>
+      callAPI("/subscriptions/cancel", { id }),
+  });
 
-    callAPI<Subscription>("/subscriptions/find", {
-      id: user.subscription.subscription_id,
-    }).then((response) => {
-      if (response === null || response.status === ResponseStatus.ERROR) {
-        setError("Something went wrong with the subscription.");
-        setSubscription(null);
-        return;
-      }
-
-      const validDataResponse = response as ValidDataResponse & {
-        data: Subscription;
-      };
-
-      setSubscription(validDataResponse.data);
-    });
-  }, [user]);
-
-  if (!user) return null;
+  const payMutation = useMutation({
+    mutationFn: ({ id }: MutationParams) =>
+      callAPI("/subscriptions/pay", { id }),
+  });
 
   const handlePageChange = (item: NavigationItem) => {
     setBreadcrumb([{ title: "Settings" }, { title: item.name }]);
@@ -248,54 +248,67 @@ export default function Settings() {
   };
 
   const handleCancelSubscription = async () => {
-    if (!subscription) return;
+    if (!hasSubscription || data === undefined) return;
 
-    const response = await callAPI("/subscriptions/cancel", {
-      id: subscription.id,
-    });
+    setCustomError(null);
 
-    if (response === null || response.status === ResponseStatus.ERROR) {
-      setError("Something went wrong with the subscription.");
-      return;
+    try {
+      await cancelMutation.mutateAsync({ id: data.id });
+
+      await signNewToken();
+
+      const notification = {
+        title: "Success!",
+        message: "Your subscription has been canceled.",
+      };
+
+      navigate(".", { replace: true, state: { notification } });
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setCustomError(new ExtendedError(err.message, true));
+      }
+
+      if (err instanceof Error) {
+        return setCustomError(new ExtendedError(err.message, false));
+      }
     }
-
-    await signNewToken();
-
-    const notification = {
-      title: "Success!",
-      message: "Your subscription has been canceled.",
-    };
-    navigate(".", { replace: true, state: { notification } });
   };
 
   const handlePayInvoice = async () => {
-    if (!subscription) return;
+    if (!hasSubscription || data === undefined) return;
 
-    const response = await callAPI("/subscriptions/pay", {
-      id: subscription.id,
-    });
+    setCustomError(null);
 
-    if (response === null || response.status === ResponseStatus.ERROR) {
-      setError("Something went wrong with the payment.");
-      return;
+    try {
+      await payMutation.mutateAsync({ id: data.id });
+
+      await signNewToken();
+
+      const notification = {
+        title: "Success!",
+        message: "Your subscription has been payed.",
+      };
+
+      navigate(".", { replace: true, state: { notification } });
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setCustomError(new ExtendedError(err.message, true));
+      }
+
+      if (err instanceof Error) {
+        return setCustomError(new ExtendedError(err.message, false));
+      }
     }
-
-    await signNewToken();
-
-    const notification = {
-      title: "Success!",
-      message: "Your subscription has been payed.",
-    };
-    navigate(".", { replace: true, state: { notification } });
   };
 
-  if (subscription === undefined) return <Loading />;
+  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (isLoading || (hasSubscription && data === undefined)) return <Loading />;
 
   return (
     <Layout
       breadcrumb={breadcrumb}
-      error={error}
-      onErrorClose={() => setError(null)}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
     >
       <div className="flex gap-8 w-full">
         <div className="flex w-full max-w-[20rem] flex-col bg-clip-border py-4 text-gray-700">
@@ -321,7 +334,7 @@ export default function Settings() {
         <div className="flex-1 py-4">
           <SettingsContent
             page={page}
-            subscription={subscription}
+            subscription={hasSubscription && data ? data : null}
             cancelSubscriptionForm={cancelSubscriptionForm}
             payInvoiceForm={payInvoiceForm}
             onCancelSubscription={handleCancelSubscription}

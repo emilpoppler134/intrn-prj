@@ -1,4 +1,8 @@
 export type Bot = {
-  _id: string;
+  id: string;
   name: string;
+  personality: string;
+  photo: string;
+  files: Array<string>;
+  timestamp: number;
 };

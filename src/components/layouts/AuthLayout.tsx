@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
+import { ExtendedError } from "../../utils/ExtendedError";
 import ErrorAlert from "../ErrorAlert";
 
 type Page = "login" | "signup" | "forgot-password";
@@ -62,7 +63,7 @@ const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
 type Props = {
   children: ReactNode;
   description?: string;
-  error: string | null;
+  error: Error | null;
   onErrorClose: () => void;
   onGoogleAuthClick?: () => void;
   page: Page;
@@ -84,6 +85,15 @@ const AuthLayout: React.FC<Props> = ({
     if (onGoogleAuthClick === undefined) return;
     onGoogleAuthClick();
   };
+
+  const handleErrorClose = () => {
+    onErrorClose?.();
+  };
+
+  const extendedError =
+    error instanceof ExtendedError
+      ? error
+      : error && new ExtendedError(error.message);
 
   return (
     <div className="bg-gray-50 h-full">
@@ -136,8 +146,13 @@ const AuthLayout: React.FC<Props> = ({
         </div>
       </div>
 
-      {error === null ? null : (
-        <ErrorAlert message={error} onClose={onErrorClose} />
+      {!extendedError ? null : extendedError.closeable ? (
+        <ErrorAlert
+          message={extendedError.message}
+          onClose={handleErrorClose}
+        />
+      ) : (
+        <ErrorAlert message={extendedError.message} />
       )}
     </div>
   );

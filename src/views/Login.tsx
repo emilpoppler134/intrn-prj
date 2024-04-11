@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Checkbox from "../components/Checkbox";
@@ -6,20 +7,33 @@ import TextInput from "../components/TextInput";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import {
-  ErrorType,
-  ResponseStatus,
-  ValidDataResponse,
-} from "../types/ApiResponses";
+import { ErrorCode } from "../types/StatusCode";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import { emailValidation } from "../utils/validation";
+
+type MutationParams = {
+  email: string;
+  password: string;
+};
+
+type LoginResponse = {
+  token: string;
+};
 
 export default function Login() {
   const navigate = useNavigate();
   const { setToken } = useAuth();
 
-  const [error, setError] = useState<string | null>(null);
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
+
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
+
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }: MutationParams) =>
+      callAPI<LoginResponse>("/users/login", { email, password }),
+  });
 
   const form = useForm([
     [
@@ -49,59 +63,34 @@ export default function Login() {
   };
 
   const handleLogin = async ({ email, password }: FormValues) => {
-    setError(null);
+    setCustomError(null);
 
-    const response = await callAPI<{ token: string }>("/users/login", {
-      email,
-      password,
-    });
+    try {
+      const response = await loginMutation.mutateAsync({ email, password });
 
-    if (response === null) {
-      setError("Something went wrong when the request was sent.");
-      return;
-    }
-
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.INVALID_PARAMS: {
-          setError("Invalid parameters.");
-          return;
+      setToken(response.token);
+      navigate("/dashboard");
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        switch (err.status) {
+          case ErrorCode.NO_RESULT: {
+            console.log(err.message);
+          }
         }
 
-        case ErrorType.HASH_PARSING: {
-          setError("Couldn't hash the password you provided.");
-          return;
-        }
+        return setCustomError(new ExtendedError(err.message, true));
+      }
 
-        case ErrorType.NO_RESULT: {
-          setError("The email or password are incorrect.");
-          return;
-        }
-
-        case ErrorType.DATABASE_ERROR: {
-          setError("Something went wrong when createing the access token.");
-          return;
-        }
-
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+      if (err instanceof Error) {
+        return setCustomError(new ExtendedError(err.message, false));
       }
     }
-
-    const validDataResponse = response as ValidDataResponse & {
-      data: { token: string };
-    };
-
-    setToken(validDataResponse.data.token);
-    navigate("/dashboard");
   };
 
   return (
     <AuthLayout
-      error={error}
-      onErrorClose={() => setError(null)}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
       onGoogleAuthClick={onGoogleAuthLogin}
       page="login"
       showGoogleAuth={true}

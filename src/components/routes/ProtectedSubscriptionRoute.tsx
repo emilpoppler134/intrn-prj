@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../provider/authProvider";
+import { useAuth } from "../../provider/authProvider";
 
 export const ProtectedSubscriptionRoute: React.FC = () => {
   const navigate = useNavigate();

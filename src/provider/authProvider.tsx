@@ -1,14 +1,11 @@
-import axios from "axios";
 import {
   ReactElement,
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { ResponseStatus, ValidDataResponse } from "../types/ApiResponses";
 import { User } from "../types/User";
 import { callAPI } from "../utils/apiService";
 
@@ -23,36 +20,32 @@ type AuthProviderProps = {
   children: ReactElement;
 };
 
+type TokenResponse = {
+  token: string;
+};
+
 const AuthContext = createContext<AuthContextProps>(null);
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, _setToken] = useState<string | null>(
-    localStorage.getItem("token"),
+    localStorage.getItem("token")
   );
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = "Bearer " + token;
-      localStorage.setItem("token", token);
-
-      callAPI<User>("/users/validate-token").then((response) => {
-        if (response === null || response.status === ResponseStatus.ERROR) {
-          setUser(null);
-          return;
-        }
-
-        const validDataResponse = response as ValidDataResponse & {
-          data: User;
-        };
-
-        setUser(validDataResponse.data);
-      });
-    } else {
-      delete axios.defaults.headers.common.Authorization;
+    if (!token) {
       localStorage.removeItem("token");
       setUser(null);
+      return;
     }
+
+    localStorage.setItem("token", token);
+
+    callAPI<User>("/users/validate-token")
+      .then((response) => {
+        setUser(response);
+      })
+      .catch(() => setUser(null));
   }, [token]);
 
   const setToken = (newToken: string | null) => {
@@ -60,20 +53,14 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(undefined);
   };
 
-  const signNewToken = useCallback(async () => {
-    const response = await callAPI<{ token: string }>("/users/sign-new-token");
-
-    if (response === null || response.status === ResponseStatus.ERROR) {
-      setUser(null);
-      return;
+  const signNewToken = async () => {
+    try {
+      const response = await callAPI<TokenResponse>("/users/sign-new-token");
+      return setToken(response.token);
+    } catch {
+      return setUser(null);
     }
-
-    const validDataResponse = response as ValidDataResponse & {
-      data: { token: string };
-    };
-
-    setToken(validDataResponse.data.token);
-  }, []);
+  };
 
   const contextValue = useMemo(
     () => ({
@@ -82,7 +69,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken,
       signNewToken,
     }),
-    [token, user, signNewToken],
+    [token, user, signNewToken]
   );
 
   return (

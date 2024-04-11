@@ -1,97 +1,78 @@
-import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
 import SubmitButton from "../components/SubmitButton";
 import Layout from "../components/layouts/Layout";
 import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import {
-  ErrorType,
-  ResponseStatus,
-  ValidDataResponse,
-} from "../types/ApiResponses";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { PaymentIntent } from "../types/PaymentIntent";
 import { Product } from "../types/Product";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
+
+type MutationParams = {
+  id: string;
+};
 
 export default function Subscriptions() {
   const navigate = useNavigate();
+
   const { user } = useAuth();
+  if (!user) return null;
 
   const form = useForm([[{ key: "productId", validation: null }]]);
 
-  const [error, setError] = useState<string | null>(null);
-  const [products, setProducts] = useState<Array<Product> | null | undefined>(
-    undefined,
-  );
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
-  useEffect(() => {
-    callAPI<Array<Product>>("/products/list").then((response) => {
-      if (response === null || response.status === ResponseStatus.ERROR) {
-        setProducts(null);
-        setError("Something went wrong.");
-        return;
-      }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["products"],
+    queryFn: () => callAPI<Array<Product>>("/products/list"),
+  });
 
-      const validDataResponse = response as ValidDataResponse & {
-        data: Array<Product>;
-      };
-
-      setProducts(validDataResponse.data);
-    });
-  }, [user]);
+  const createMutation = useMutation({
+    mutationFn: ({ id }: MutationParams) =>
+      callAPI<PaymentIntent>("/subscriptions/create-payment-intent", { id }),
+  });
 
   const handleCreatePaymentIntent = async ({ productId }: FormValues) => {
-    const response = await callAPI<PaymentIntent>(
-      "/subscriptions/create-payment-intent",
-      { id: productId },
-    );
+    setCustomError(null);
 
-    if (response === null) {
-      setError("Something went wrong when the request was sent.");
-      return;
-    }
+    try {
+      const response = await createMutation.mutateAsync({ id: productId });
 
-    if (response.status === ResponseStatus.ERROR) {
-      switch (response.error) {
-        case ErrorType.ALREADY_EXISTING: {
-          setError(
-            "You already have an active subscription. Cancel it to start a new one.",
-          );
-          return;
-        }
+      const searchParams = [
+        "payment_intent_client_secret=" + response.clientSecret,
+        "product_id=" + productId,
+      ];
 
-        default: {
-          setError("Something went wrong.");
-          return;
-        }
+      navigate("/subscriptions/payment?" + searchParams.join("&"));
+    } catch (err: unknown) {
+      if (err instanceof ResponseError) {
+        return setCustomError(new ExtendedError(err.message, true));
+      }
+
+      if (err instanceof Error) {
+        return setCustomError(new ExtendedError(err.message, false));
       }
     }
-
-    const validDataResponse = response as ValidDataResponse & {
-      data: PaymentIntent;
-    };
-
-    navigate("/subscriptions/payment", {
-      state: { paymentIntent: validDataResponse.data },
-    });
   };
 
-  if (!user) return null;
-  if (products === null) return <Layout breadcrumb={null} error={error} />;
-  if (products === undefined) return <Loading />;
-
   const breadcrumb: Breadcrumb = [{ title: "Subscriptions" }];
+
+  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (isLoading || data === undefined) return <Loading />;
 
   return (
     <Layout
       breadcrumb={breadcrumb}
-      error={error}
-      onErrorClose={() => setError(null)}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
     >
       <div className="mx-auto max-w-2xl">
-        {products.map((product) => (
+        {data.map((product) => (
           <div
             key={product.id}
             className="-mt-2 mx-auto p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0"

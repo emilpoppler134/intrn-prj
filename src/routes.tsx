@@ -1,6 +1,7 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { ProtectedSubscriptionRoute } from "./components/ProtectedSubscriptionRoute";
+
+import { ProtectedRoute } from "./components/routes/ProtectedRoute";
+import { ProtectedSubscriptionRoute } from "./components/routes/ProtectedSubscriptionRoute";
 
 import BotChat from "./views/BotChat";
 import BotConfig from "./views/BotConfig";
@@ -9,6 +10,7 @@ import ForgotPassword from "./views/ForgotPassword";
 import Login from "./views/Login";
 import NotFound from "./views/NotFound";
 import Payment from "./views/Payment";
+import PaymentResult from "./views/PaymentResult";
 import Settings from "./views/Settings";
 import Signup from "./views/Signup";
 import Startpage from "./views/Startpage";
@@ -51,12 +53,12 @@ const Routes = () => {
           element: <Subscriptions />,
         },
         {
-          path: "/subscriptions/payment",
+          path: "/subscriptions/payment/",
           element: <Payment />,
         },
         {
           path: "/subscriptions/payment/result",
-          element: <Payment />,
+          element: <PaymentResult />,
         },
         {
           path: "/settings",
