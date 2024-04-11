@@ -26,13 +26,13 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   fullWidth = true,
   color = "primary",
 }) => {
-  const [available, setAvaliable] = useState(false);
+  const [available, setAvailable] = useState(false);
 
   const { bg, hover, focus } = palette[color];
 
   useEffect(() => {
     const isValid = form.validateForm();
-    setAvaliable(isValid === true ?? false);
+    setAvailable(isValid === true ?? false);
   }, [form]);
 
   const onButtonClick = () => {
