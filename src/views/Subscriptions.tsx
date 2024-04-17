@@ -1,10 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SubmitButton } from "../components/Buttons";
 import Loading from "../components/Loading";
-import SubmitButton from "../components/SubmitButton";
 import Layout from "../components/layouts/Layout";
-import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { PaymentIntent } from "../types/PaymentIntent";
@@ -23,8 +22,6 @@ export default function Subscriptions() {
   const { user } = useAuth();
   if (!user) return null;
 
-  const form = useForm([[{ key: "productId", validation: null }]]);
-
   const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
   const { data, isLoading, error } = useQuery({
@@ -35,29 +32,26 @@ export default function Subscriptions() {
   const createMutation = useMutation({
     mutationFn: ({ id }: MutationParams) =>
       callAPI<PaymentIntent>("/subscriptions/create-payment-intent", { id }),
-  });
-
-  const handleCreatePaymentIntent = async ({ productId }: FormValues) => {
-    setCustomError(null);
-
-    try {
-      const response = await createMutation.mutateAsync({ id: productId });
-
+    onSuccess: (response, variables) => {
       const searchParams = [
         "payment_intent_client_secret=" + response.clientSecret,
-        "product_id=" + productId,
+        "product_id=" + variables.id,
       ];
-
       navigate("/subscriptions/payment?" + searchParams.join("&"));
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setCustomError(new ExtendedError(err.message, true));
-      }
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
+  });
 
-      if (err instanceof Error) {
-        return setCustomError(new ExtendedError(err.message, false));
-      }
-    }
+  const onCreatePaymentIntent = async (productId: string) => {
+    setCustomError(null);
+    createMutation.mutate({ id: productId });
   };
 
   const breadcrumb: Breadcrumb = [{ title: "Subscriptions" }];
@@ -77,10 +71,7 @@ export default function Subscriptions() {
             key={product.id}
             className="-mt-2 mx-auto p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0"
           >
-            <div
-              className="rounded-2xl bg-white py-10 text-center ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16"
-              onMouseOver={() => form.setValue("productId", product.id)}
-            >
+            <div className="rounded-2xl bg-white py-10 text-center ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16">
               <div className="mx-auto max-w-xs px-8">
                 <p className="text-base font-semibold text-gray-600">
                   {product.name}
@@ -95,9 +86,9 @@ export default function Subscriptions() {
                 </p>
                 <div className="mt-10">
                   <SubmitButton
-                    text="Choose"
-                    form={form}
-                    onPress={handleCreatePaymentIntent}
+                    title="Choose"
+                    loading={createMutation.isPending}
+                    onPress={() => onCreatePaymentIntent(product.id)}
                   />
                 </div>
                 <p className="mt-6 text-xs leading-5 text-gray-600">

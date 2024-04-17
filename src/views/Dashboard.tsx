@@ -1,15 +1,17 @@
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { PlusIcon, UserIcon } from "@heroicons/react/24/solid";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { SVGProps, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import * as yup from "yup";
 import BotItem from "../components/BotItem";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
-import TextInput from "../components/TextInput";
+import TextField from "../components/TextField";
 import WarningAlert from "../components/WarningAlert";
 import Layout from "../components/layouts/Layout";
-import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
@@ -17,10 +19,17 @@ import { ErrorCode } from "../types/StatusCode";
 import { ExtendedError } from "../utils/ExtendedError";
 import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
+import isInvalid from "../utils/isInvalid";
 
-type MutationParams = {
-  name: string;
-};
+const schema = yup.object().shape({
+  name: yup
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .required("Name cannot be empty."),
+});
+
+type FormFields = yup.InferType<typeof schema>;
+type CreateResponse = Bot;
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -28,10 +37,15 @@ export default function Dashboard() {
   const { user } = useAuth();
   if (!user) return null;
 
-  const form = useForm([[{ key: "name" }]]);
-
   const [open, setOpen] = useState<boolean>(false);
   const [customError, setCustomError] = useState<ExtendedError | null>(null);
+
+  const form = useForm<FormFields>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
+    resolver: yupResolver(schema),
+  });
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["botList"],
@@ -39,9 +53,38 @@ export default function Dashboard() {
   });
 
   const createMutation = useMutation({
-    mutationFn: ({ name }: MutationParams) =>
-      callAPI<Bot>("/bots/create", { name }),
+    mutationFn: ({ name }: FormFields) =>
+      callAPI<CreateResponse>("/bots/create", { name }),
+    onSuccess: (response: CreateResponse) => {
+      const notification = {
+        title: "Success!",
+        message: "You have created a new bot.",
+      };
+
+      navigate(`/bots/${response.id}/config`, {
+        state: { notification },
+      });
+    },
+    onError: (err: Error) => {
+      if (err instanceof ResponseError && err.status === ErrorCode.CONFLICT) {
+        return form.setError("name", {
+          message: err.message,
+        });
+      }
+
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
   });
+
+  const handleCreate = ({ name }: FormFields) => {
+    setCustomError(null);
+    createMutation.mutate({ name });
+  };
 
   const handleOpen = () => {
     if (user.subscription.status === null) {
@@ -54,44 +97,8 @@ export default function Dashboard() {
   };
 
   const handleClose = () => {
-    form.clearData();
+    form.reset();
     setOpen(false);
-  };
-
-  const handleEnterKeyPress = () => {
-    form.handleSubmit(handleCreate);
-  };
-
-  const handleCreate = async ({ name }: FormValues) => {
-    setCustomError(null);
-
-    try {
-      const response = await createMutation.mutateAsync({ name });
-
-      const notification = {
-        title: "Success!",
-        message: "You have created a new bot.",
-      };
-
-      navigate(`/bots/${response.id}/config`, {
-        state: { notification },
-      });
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        switch (err.status) {
-          case ErrorCode.CONFLICT: {
-            console.log(err.message);
-            return;
-          }
-        }
-
-        return setCustomError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setCustomError(new ExtendedError(err.message, false));
-      }
-    }
   };
 
   const breadcrumb: Breadcrumb = [{ title: "Overview" }];
@@ -173,18 +180,12 @@ export default function Dashboard() {
           show={open}
           title="New bot"
           Icon={UserIcon as React.FC<SVGProps<SVGElement>>}
-          form={form}
-          onSubmit={handleCreate}
+          loading={createMutation.isPending}
+          disabled={isInvalid<FormFields>(form)}
+          onSubmit={form.handleSubmit(handleCreate)}
           onCancel={handleClose}
         >
-          <TextInput
-            name="name"
-            key="name"
-            type="text"
-            title="Name"
-            form={form}
-            onEnterKeyPress={handleEnterKeyPress}
-          />
+          <TextField form={form} name="name" key="name" title="Name" />
         </Modal>
 
         {user.subscription.status === null && (

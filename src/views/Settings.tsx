@@ -6,17 +6,16 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { SVGProps, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { RevokeButton, SubmitButton } from "../components/Buttons";
 import Loading from "../components/Loading";
-import SubmitButton from "../components/SubmitButton";
+import SidebarItem from "../components/SidebarItem";
 import Layout from "../components/layouts/Layout";
-import { FormHook, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { Subscription } from "../types/Subscription";
 import { ExtendedError } from "../utils/ExtendedError";
 import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
-import { dynamicClassNames } from "../utils/dynamicClassNames";
 import { formatUnixDate, formatUnixDateTime } from "../utils/formatUnixDate";
 
 const SETTINGS_PAGES = {
@@ -26,54 +25,54 @@ const SETTINGS_PAGES = {
 } as const;
 
 type ObjectValues<T> = T[keyof T];
-type SettingsPages = ObjectValues<typeof SETTINGS_PAGES>;
+type SettingsPage = ObjectValues<typeof SETTINGS_PAGES>;
 
-type NavigationItem = {
-  name: string;
-  icon: React.FC<SVGProps<SVGElement>>;
-  to: SettingsPages;
-};
-
-type SettingsContentProps = {
-  page: SettingsPages;
-  subscription: Subscription | null;
-  cancelSubscriptionForm: FormHook;
-  payInvoiceForm: FormHook;
-  onCancelSubscription: () => Promise<void>;
-  onPayInvoice: () => Promise<void>;
-};
+function isSettingsPage(page: string): page is SettingsPage {
+  return Object.values(SETTINGS_PAGES).includes(page as SettingsPage);
+}
 
 type MutationParams = {
   id: string;
 };
 
-function isSettingsPage(page: string): page is SettingsPages {
-  return Object.values(SETTINGS_PAGES).includes(page as SettingsPages);
-}
+type NavigationItem = {
+  id: SettingsPage;
+  title: string;
+  Icon: React.FC<SVGProps<SVGElement>>;
+};
+
+type SettingsContentProps = {
+  page: SettingsPage;
+  subscription: Subscription | null;
+  cancelLoading: boolean;
+  payLoading: boolean;
+  onCancelSubscription: () => void;
+  onPayInvoice: () => void;
+};
 
 const navigation: Array<NavigationItem> = [
   {
-    name: "Account",
-    to: SETTINGS_PAGES.ACCOUNT,
-    icon: UserCircleIcon as React.FC<SVGProps<SVGElement>>,
+    id: SETTINGS_PAGES.ACCOUNT,
+    title: "Account",
+    Icon: UserCircleIcon as React.FC<SVGProps<SVGElement>>,
   },
   {
-    name: "Billing history",
-    to: SETTINGS_PAGES.BILLING_HISTORY,
-    icon: ClipboardIcon as React.FC<SVGProps<SVGElement>>,
+    id: SETTINGS_PAGES.BILLING_HISTORY,
+    title: "Billing history",
+    Icon: ClipboardIcon as React.FC<SVGProps<SVGElement>>,
   },
   {
-    name: "Subscription",
-    to: SETTINGS_PAGES.SUBSCRIPTION,
-    icon: KeyIcon as React.FC<SVGProps<SVGElement>>,
+    id: SETTINGS_PAGES.SUBSCRIPTION,
+    title: "Subscription",
+    Icon: KeyIcon as React.FC<SVGProps<SVGElement>>,
   },
 ];
 
 const SettingsContent: React.FC<SettingsContentProps> = ({
   page,
   subscription,
-  cancelSubscriptionForm,
-  payInvoiceForm,
+  cancelLoading,
+  payLoading,
   onCancelSubscription,
   onPayInvoice,
 }) => {
@@ -146,18 +145,15 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
                       </span>
                     </div>
                     <div className="flex gap-4 mt-5">
-                      <SubmitButton
-                        text="Cancel"
-                        color="red"
-                        fullWidth={false}
-                        form={cancelSubscriptionForm}
+                      <RevokeButton
+                        title="Cancel"
+                        loading={cancelLoading}
                         onPress={onCancelSubscription}
                       />
-                      {subscription.status !== "past_due" ? null : (
+                      {subscription.status === "past_due" && (
                         <SubmitButton
-                          text="Pay now"
-                          fullWidth={false}
-                          form={payInvoiceForm}
+                          title="Pay now"
+                          loading={payLoading}
                           onPress={onPayInvoice}
                         />
                       )}
@@ -175,7 +171,7 @@ const SettingsContent: React.FC<SettingsContentProps> = ({
                     <Link to="/subscriptions">
                       <div className="px-4 py-2 rounded-md shadow-md bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:bg-primary-300">
                         <span className="text-sm font-semibold text-white pointer-events-none">
-                          Start a subscription.
+                          Start a subscription
                         </span>
                       </div>
                     </Link>
@@ -204,26 +200,17 @@ export default function Settings() {
   const subscription = user.subscription;
   const hasSubscription = subscription.status !== null;
 
-  const cancelSubscriptionForm = useForm();
-  const payInvoiceForm = useForm();
-
   const pageProp = searchParams.get("page");
-
-  const defaultPage: SettingsPages =
+  const defaultPage: SettingsPage =
     pageProp && isSettingsPage(pageProp)
-      ? (pageProp as SettingsPages)
+      ? (pageProp as SettingsPage)
       : SETTINGS_PAGES.ACCOUNT;
 
-  const [breadcrumb, setBreadcrumb] = useState<Breadcrumb>([
-    { title: "Settings" },
-    { title: "Account" },
-  ]);
-
-  const [page, setPage] = useState<SettingsPages>(defaultPage);
+  const [page, setPage] = useState<SettingsPage>(defaultPage);
   const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
   const { data, error, isLoading } = useQuery({
-    queryKey: ["subscriptionSettings"],
+    queryKey: ["subscription"],
     queryFn: () =>
       callAPI<Subscription>("/subscriptions/find", {
         id: subscription.subscription_id,
@@ -234,72 +221,70 @@ export default function Settings() {
   const cancelMutation = useMutation({
     mutationFn: ({ id }: MutationParams) =>
       callAPI("/subscriptions/cancel", { id }),
+    onSuccess: () => {
+      signNewToken().then(() => {
+        const notification = {
+          title: "Success!",
+          message: "Your subscription has been canceled.",
+        };
+
+        navigate(".?page=" + page, { replace: true, state: { notification } });
+      });
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
   });
 
   const payMutation = useMutation({
     mutationFn: ({ id }: MutationParams) =>
       callAPI("/subscriptions/pay", { id }),
-  });
+    onSuccess: () => {
+      signNewToken().then(() => {
+        const notification = {
+          title: "Success!",
+          message: "Your subscription has been payed.",
+        };
 
-  const handlePageChange = (item: NavigationItem) => {
-    setBreadcrumb([{ title: "Settings" }, { title: item.name }]);
-    setSearchParams({ page: item.to });
-    setPage(item.to);
-  };
+        navigate(".?page=" + page, { replace: true, state: { notification } });
+      });
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
+  });
 
   const handleCancelSubscription = async () => {
     if (!hasSubscription || data === undefined) return;
-
     setCustomError(null);
-
-    try {
-      await cancelMutation.mutateAsync({ id: data.id });
-
-      await signNewToken();
-
-      const notification = {
-        title: "Success!",
-        message: "Your subscription has been canceled.",
-      };
-
-      navigate(".", { replace: true, state: { notification } });
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setCustomError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setCustomError(new ExtendedError(err.message, false));
-      }
-    }
+    cancelMutation.mutate({ id: data.id });
   };
 
   const handlePayInvoice = async () => {
     if (!hasSubscription || data === undefined) return;
-
     setCustomError(null);
-
-    try {
-      await payMutation.mutateAsync({ id: data.id });
-
-      await signNewToken();
-
-      const notification = {
-        title: "Success!",
-        message: "Your subscription has been payed.",
-      };
-
-      navigate(".", { replace: true, state: { notification } });
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setCustomError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setCustomError(new ExtendedError(err.message, false));
-      }
-    }
+    payMutation.mutate({ id: data.id });
   };
+
+  const changePage = (to: SettingsPage) => {
+    setSearchParams({ page: to });
+    setPage(to);
+  };
+
+  const pageTitle =
+    navigation.find((item) => item.id === page)?.title ?? "Account";
+
+  const breadcrumb: Breadcrumb = [{ title: "Settings" }, { title: pageTitle }];
 
   if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
   if (isLoading || (hasSubscription && data === undefined)) return <Loading />;
@@ -314,19 +299,12 @@ export default function Settings() {
         <div className="flex w-full max-w-[20rem] flex-col bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">
             {navigation.map((item) => (
-              <button
-                key={item.name}
-                className={dynamicClassNames(
-                  item.to === page ? "bg-primary-100 hover:bg-primary-100" : "",
-                  "flex items-center w-full p-3 leading-tight rounded-lg text-start hover:bg-gray-100",
-                )}
-                onClick={() => handlePageChange(item)}
-              >
-                <div className="grid mr-4 place-items-center">
-                  <item.icon className="block w-6 h-6" aria-hidden="true" />
-                </div>
-                <span>{item.name}</span>
-              </button>
+              <SidebarItem
+                {...item}
+                key={item.id}
+                current={page}
+                onPress={() => changePage(item.id)}
+              />
             ))}
           </nav>
         </div>
@@ -335,8 +313,8 @@ export default function Settings() {
           <SettingsContent
             page={page}
             subscription={hasSubscription && data ? data : null}
-            cancelSubscriptionForm={cancelSubscriptionForm}
-            payInvoiceForm={payInvoiceForm}
+            cancelLoading={cancelMutation.isPending}
+            payLoading={payMutation.isPending}
             onCancelSubscription={handleCancelSubscription}
             onPayInvoice={handlePayInvoice}
           />

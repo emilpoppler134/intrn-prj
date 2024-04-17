@@ -2,24 +2,17 @@ import { API_ADDRESS } from "../config";
 import { ErrorCode, SuccessCode } from "../types/StatusCode";
 import { ResponseError } from "./ResponseError";
 
-type JSONValue = string | number | boolean | null | JSONObject | JSONArray;
-
-interface JSONObject {
-  [key: string]: JSONValue;
-}
-
-interface JSONArray extends Array<JSONValue> {}
-
-type Body = {
-  [key: string]: string | undefined | null;
-};
+type JSONValue = string | number | boolean | None | JSONObject | JSONArray;
+type JSONObject = { [key: string]: JSONValue };
+type JSONArray = Array<JSONValue>;
+type None = null | undefined;
 
 type CustomResponse = Response & { status: SuccessCode | ErrorCode };
 type ErrorResponseData = { message: string };
 
 export async function callAPI<T extends JSONValue | void = void>(
   url: string,
-  body?: Body,
+  body?: JSONValue,
 ): Promise<T> {
   const token = localStorage.getItem("token");
 

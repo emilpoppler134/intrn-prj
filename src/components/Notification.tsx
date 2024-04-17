@@ -1,6 +1,6 @@
 import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import classNames from "classnames";
 import React, { useEffect, useState } from "react";
-import { dynamicClassNames } from "../utils/dynamicClassNames";
 
 export type NotificationProps = {
   title: string;
@@ -31,8 +31,9 @@ const Notification: React.FC<NotificationProps> = ({ title, message }) => {
 
   return (
     <div
-      className={dynamicClassNames(
-        show ? "right-6" : "-right-96",
+      className={classNames(
+        { "right-6": show },
+        { "-right-96": !show },
         "fixed top-6 w-full max-w-96 transition-[right] ease-out duration-200 z-30",
       )}
     >

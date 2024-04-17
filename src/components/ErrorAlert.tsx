@@ -2,12 +2,12 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { XCircleIcon } from "@heroicons/react/24/solid";
 import React from "react";
 
-type Props = {
+type ErrorAlertProps = {
   message: string;
   onClose?: () => void;
 };
 
-const ErrorAlert: React.FC<Props> = ({ message, onClose }) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ message, onClose }) => {
   const handleButtonClick = () => {
     onClose?.();
   };

@@ -9,12 +9,12 @@ import {
   SquaresPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import classNames from "classnames";
 import React, { Fragment, ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
-import { dynamicClassNames } from "../../utils/dynamicClassNames";
 
-type Props = {
+type PublicLayoutProps = {
   children: ReactNode;
 };
 
@@ -51,7 +51,7 @@ const products = [
   },
 ];
 
-const PublicLayout: React.FC<Props> = ({ children }) => {
+const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -195,10 +195,9 @@ const PublicLayout: React.FC<Props> = ({ children }) => {
                         <Disclosure.Button className="flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">
                           Product
                           <ChevronDownIcon
-                            className={dynamicClassNames(
-                              open ? "rotate-180" : "",
-                              "h-5 w-5 flex-none",
-                            )}
+                            className={classNames("h-5 w-5 flex-none", {
+                              "rotate-180": open,
+                            })}
                             aria-hidden="true"
                           />
                         </Disclosure.Button>

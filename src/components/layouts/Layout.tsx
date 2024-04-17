@@ -5,13 +5,13 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { HomeIcon, UserIcon } from "@heroicons/react/24/solid";
+import classNames from "classnames";
 import React, { Fragment, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
 import { useAuth } from "../../provider/authProvider";
 import { Breadcrumb } from "../../types/Breadcrumb";
 import { ExtendedError } from "../../utils/ExtendedError";
-import { dynamicClassNames } from "../../utils/dynamicClassNames";
 import ErrorAlert from "./../ErrorAlert";
 import Notification from "./../Notification";
 
@@ -102,15 +102,17 @@ const Layout: React.FC<LayoutProps> = ({
                           <Link
                             key={item.name}
                             to={item.href}
-                            className={dynamicClassNames(
-                              item.current
-                                ? "bg-gray-900 text-white"
-                                : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                            className={classNames(
+                              { "bg-gray-900 text-white": item.current },
+                              {
+                                "hover:bg-gray-700 text-gray-300 hover:text-white":
+                                  !item.current,
+                              },
                               "rounded-md px-3 py-2 text-sm font-medium",
                             )}
                             aria-current={item.current ? "page" : undefined}
                           >
-                            {item.name}
+                            <span>{item.name}</span>
                           </Link>
                         ))}
                       </div>
@@ -154,8 +156,8 @@ const Layout: React.FC<LayoutProps> = ({
                               {({ active }) => (
                                 <Link
                                   to="/settings"
-                                  className={dynamicClassNames(
-                                    active ? "bg-gray-100" : "",
+                                  className={classNames(
+                                    { "bg-gray-100": active },
                                     "block px-4 py-2 text-sm text-gray-700",
                                   )}
                                 >
@@ -167,8 +169,8 @@ const Layout: React.FC<LayoutProps> = ({
                               {({ active }) => (
                                 <button
                                   onClick={handleLogout}
-                                  className={dynamicClassNames(
-                                    active ? "bg-gray-100" : "",
+                                  className={classNames(
+                                    { "bg-gray-100": active },
                                     "block w-full px-4 py-2 text-sm text-left text-gray-700",
                                   )}
                                 >
@@ -208,10 +210,12 @@ const Layout: React.FC<LayoutProps> = ({
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={dynamicClassNames(
-                        item.current
-                          ? "bg-gray-900 text-white"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                      className={classNames(
+                        { "bg-gray-900 text-white": item.current },
+                        {
+                          "text-gray-300 hover:bg-gray-700 hover:text-white":
+                            !item.current,
+                        },
                         "block rounded-md px-3 py-2 text-base font-medium",
                       )}
                       aria-current={item.current ? "page" : undefined}
@@ -299,7 +303,7 @@ const Layout: React.FC<LayoutProps> = ({
                           </span>
                         </Link>
                       ) : (
-                        <span className="ml-1 cursor-default text-base font-medium text-gray-500 md:ml-2 dark:text-gray-400">
+                        <span className="ml-1 cursor-default text-base font-medium text-gray-500 md:ml-2">
                           {item.title}
                         </span>
                       )}

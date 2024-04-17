@@ -7,7 +7,9 @@ import Routes from "./routes";
 import "./assets/index.css";
 import "./assets/main.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,

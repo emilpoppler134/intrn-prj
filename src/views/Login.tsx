@@ -1,26 +1,28 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import * as yup from "yup";
+import { PrimaryButton } from "../components/Buttons";
 import Checkbox from "../components/Checkbox";
-import SubmitButton from "../components/SubmitButton";
-import TextInput from "../components/TextInput";
+import { Form } from "../components/Form";
+import PasswordField from "../components/PasswordField";
+import TextField from "../components/TextField";
 import AuthLayout from "../components/layouts/AuthLayout";
-import { FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
-import { ErrorCode } from "../types/StatusCode";
 import { ExtendedError } from "../utils/ExtendedError";
 import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
-import { emailValidation } from "../utils/validation";
+import isInvalid from "../utils/isInvalid";
 
-type MutationParams = {
-  email: string;
-  password: string;
-};
+const schema = yup.object().shape({
+  email: yup.string().required("Email cannot be empty."),
+  password: yup.string().required("Password cannot be empty."),
+});
 
-type LoginResponse = {
-  token: string;
-};
+type FormFields = yup.InferType<typeof schema>;
+type LoginResponse = { token: string };
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,23 +30,34 @@ export default function Login() {
 
   const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
-  const passwordInputRef = useRef<HTMLInputElement | null>(null);
-
-  const loginMutation = useMutation({
-    mutationFn: ({ email, password }: MutationParams) =>
-      callAPI<LoginResponse>("/users/login", { email, password }),
+  const form = useForm<FormFields>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
+    resolver: yupResolver(schema),
   });
 
-  const form = useForm([
-    [
-      {
-        key: "email",
-        helperText: "Enter a valid email.",
-        validation: emailValidation,
-      },
-      { key: "password" },
-    ],
-  ]);
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }: FormFields) =>
+      callAPI<LoginResponse>("/users/login", { email, password }),
+    onSuccess: (response: LoginResponse) => {
+      setToken(response.token);
+      navigate("/dashboard");
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
+  });
+
+  const handleLogin = async ({ email, password }: FormFields) => {
+    setCustomError(null);
+    loginMutation.mutate({ email, password });
+  };
 
   const handleRememberChange = (checked: boolean) => {
     console.log("Remember me checkbox is checked: " + checked);
@@ -52,39 +65,6 @@ export default function Login() {
 
   const onGoogleAuthLogin = () => {
     console.log("User requested to login with google");
-  };
-
-  const handleEmailEnterKeyPress = async () => {
-    passwordInputRef?.current?.focus();
-  };
-
-  const handlePasswordEnterKeyPress = async () => {
-    await form.handleSubmit(handleLogin);
-  };
-
-  const handleLogin = async ({ email, password }: FormValues) => {
-    setCustomError(null);
-
-    try {
-      const response = await loginMutation.mutateAsync({ email, password });
-
-      setToken(response.token);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        switch (err.status) {
-          case ErrorCode.NO_RESULT: {
-            console.log(err.message);
-          }
-        }
-
-        return setCustomError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setCustomError(new ExtendedError(err.message, false));
-      }
-    }
   };
 
   return (
@@ -96,41 +76,38 @@ export default function Login() {
       showGoogleAuth={true}
       title="Sign in to your account"
     >
-      <TextInput
-        name="email"
-        key="email"
-        type="text"
-        title="Email"
-        form={form}
-        onEnterKeyPress={handleEmailEnterKeyPress}
-      />
+      <Form onSubmit={form.handleSubmit(handleLogin)}>
+        <TextField form={form} name="email" key="email" title="Email" />
 
-      <TextInput
-        name="password"
-        key="password"
-        type="password"
-        title="Password"
-        reference={passwordInputRef}
-        form={form}
-        onEnterKeyPress={handlePasswordEnterKeyPress}
-      />
-
-      <div className="flex items-center justify-between">
-        <Checkbox
-          name="remember"
-          title="Remember me"
-          onChange={handleRememberChange}
+        <PasswordField
+          form={form}
+          name="password"
+          key="password"
+          title="Password"
         />
 
-        <Link
-          to="/forgot-password"
-          className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
-        >
-          <span>Forgot password?</span>
-        </Link>
-      </div>
+        <div className="flex items-center justify-between">
+          <Checkbox
+            name="remember"
+            title="Remember me"
+            onChange={handleRememberChange}
+          />
 
-      <SubmitButton text="Login" form={form} onPress={handleLogin} />
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-primary-600 hover:underline"
+          >
+            <span>Forgot password?</span>
+          </Link>
+        </div>
+
+        <PrimaryButton
+          title="Login"
+          type="submit"
+          loading={loginMutation.isPending}
+          disabled={isInvalid<FormFields>(form)}
+        />
+      </Form>
     </AuthLayout>
   );
 }

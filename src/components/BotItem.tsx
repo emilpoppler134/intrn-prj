@@ -24,14 +24,14 @@ const BotItem: React.FC<BotItemProps> = ({ bot }) => {
             </div>
           </div>
           <div className="mt-2">
-            <span className="text-base font-medium text-primary-600 group-hover:underline dark:text-primary-500">
+            <span className="text-base font-medium text-primary-600 group-hover:underline">
               Chat
             </span>
           </div>
         </div>
       </Link>
       <Link to={`/bots/${bot.id}/config`}>
-        <span className="text-base font-medium text-primary-600 hover:underline dark:text-primary-500">
+        <span className="text-base font-medium text-primary-600 hover:underline">
           Config
         </span>
       </Link>

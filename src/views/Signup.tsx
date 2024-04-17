@@ -1,44 +1,66 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { MutableRefObject, useRef, useState } from "react";
+import { useState } from "react";
+import { UseFormReturn, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import SubmitButton from "../components/SubmitButton";
-import TextInput from "../components/TextInput";
+import * as yup from "yup";
+import { PrimaryButton } from "../components/Buttons";
+import { Form } from "../components/Form";
+import PasswordField from "../components/PasswordField";
+import TextField from "../components/TextField";
 import AuthLayout from "../components/layouts/AuthLayout";
-import { FormHook, FormValues, useForm } from "../hooks/useForm";
 import { useAuth } from "../provider/authProvider";
 import { ExtendedError } from "../utils/ExtendedError";
 import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
-import { emailValidation } from "../utils/validation";
+import isInvalid from "../utils/isInvalid";
 
-type RequestParams = {
-  name: string;
-  email: string;
-};
+const requestSchema = yup.object().shape({
+  name: yup.string().required("Name cannot be empty."),
+  email: yup
+    .string()
+    .email("Email is invalid.")
+    .required("Email cannot be empty."),
+});
 
-type ConfirmParams = {
-  email: string;
-  code: string;
-};
+const confirmSchema = yup.object().shape({
+  code: yup.string().required("Code cannot be empty."),
+});
 
-type SubmitParams = {
-  name: string;
-  email: string;
-  code: string;
-  password: string;
-};
+const submitSchema = yup.object().shape({
+  password: yup
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(32, "Password must be at most 32 characters")
+    .required("Password cannot be empty."),
+  rePassword: yup.string().required("Re-entered password cannot be empty."),
+});
 
-type SignupResponse = {
-  token: string;
-};
+type RequestFormFields = yup.InferType<typeof requestSchema>;
+type ConfirmFormFields = yup.InferType<typeof confirmSchema>;
+type SubmitFormFields = yup.InferType<typeof submitSchema>;
+
+type RequestParams = RequestFormFields;
+type ConfirmParams = Omit<RequestFormFields, "name"> & ConfirmFormFields;
+type SubmitParams = RequestFormFields &
+  ConfirmFormFields &
+  Omit<SubmitFormFields, "rePassword">;
+
+type SignupResponse = { token: string };
 
 type StepProps = {
-  onConfirmationSubmit: (values: FormValues) => Promise<void>;
-  onRequestSubmit: (values: FormValues) => Promise<void>;
-  onSignupSubmit: (values: FormValues) => Promise<void>;
-  emailInputRef: MutableRefObject<HTMLInputElement | null>;
-  reenteredPasswordInputRef: MutableRefObject<HTMLInputElement | null>;
-  form: FormHook;
+  confirmDisabled: boolean;
+  confirmForm: UseFormReturn<ConfirmFormFields>;
+  confirmLoading: boolean;
+  requestDisabled: boolean;
+  requestForm: UseFormReturn<RequestFormFields>;
+  requestLoading: boolean;
+  submitDisabled: boolean;
+  submitForm: UseFormReturn<SubmitFormFields>;
+  submitLoading: boolean;
+  onRequest: (fields: RequestFormFields) => void;
+  onConfirm: (fields: ConfirmFormFields) => void;
+  onSubmit: (fields: SubmitFormFields) => void;
   step: number;
 };
 
@@ -49,107 +71,87 @@ const descriptions: Array<string> = [
 ];
 
 const Steps: React.FC<StepProps> = ({
-  onConfirmationSubmit,
-  onRequestSubmit,
-  onSignupSubmit,
-  emailInputRef,
-  reenteredPasswordInputRef,
-  form,
+  confirmDisabled,
+  confirmForm,
+  confirmLoading,
+  requestDisabled,
+  requestForm,
+  requestLoading,
+  submitDisabled,
+  submitForm,
+  submitLoading,
+  onRequest,
+  onConfirm,
+  onSubmit,
   step,
 }) => {
   switch (step) {
     case 0: {
-      const handleNameEnterKeyPress = async () => {
-        emailInputRef?.current?.focus();
-      };
-
-      const handleEmailEnterKeyPress = async () => {
-        await form.handleSubmit(onRequestSubmit);
-      };
-
       return (
-        <>
-          <TextInput
-            name="name"
-            key="name"
-            type="text"
-            title="Name"
-            form={form}
-            onEnterKeyPress={handleNameEnterKeyPress}
-          />
+        <Form onSubmit={requestForm.handleSubmit(onRequest)}>
+          <TextField form={requestForm} name="name" key="name" title="Name" />
 
-          <TextInput
+          <TextField
+            form={requestForm}
             name="email"
             key="email"
-            type="text"
             title="Email"
-            reference={emailInputRef}
-            form={form}
-            onEnterKeyPress={handleEmailEnterKeyPress}
           />
 
-          <SubmitButton text="Next" form={form} onPress={onRequestSubmit} />
-        </>
+          <PrimaryButton
+            title="Next"
+            type="submit"
+            loading={requestLoading}
+            disabled={requestDisabled}
+          />
+        </Form>
       );
     }
 
     case 1: {
-      const handleCodeEnterKeyPress = async () => {
-        await form.handleSubmit(onConfirmationSubmit);
-      };
-
       return (
-        <>
-          <TextInput
+        <Form onSubmit={confirmForm.handleSubmit(onConfirm)}>
+          <TextField
+            form={confirmForm}
             name="code"
             key="code"
-            type="text"
             title="Verification code"
-            form={form}
-            onEnterKeyPress={handleCodeEnterKeyPress}
           />
 
-          <SubmitButton
-            text="Next"
-            form={form}
-            onPress={onConfirmationSubmit}
+          <PrimaryButton
+            title="Next"
+            type="submit"
+            loading={confirmLoading}
+            disabled={confirmDisabled}
           />
-        </>
+        </Form>
       );
     }
 
     case 2: {
-      const handlePasswordEnterKeyPress = async () => {
-        reenteredPasswordInputRef?.current?.focus();
-      };
-
-      const handleReenteredPasswordEnterKeyPress = async () => {
-        await form.handleSubmit(onSignupSubmit);
-      };
-
       return (
-        <>
-          <TextInput
+        <Form onSubmit={submitForm.handleSubmit(onSubmit)}>
+          <PasswordField
+            form={submitForm}
             name="password"
             key="password"
-            type="password"
             title="New password"
-            form={form}
-            onEnterKeyPress={handlePasswordEnterKeyPress}
           />
 
-          <TextInput
-            name="reenteredPassword"
-            key="reenteredPassword"
-            type="password"
+          <PasswordField
+            form={submitForm}
+            name="rePassword"
+            key="rePassword"
             title="Re-enter new password"
-            reference={reenteredPasswordInputRef}
-            form={form}
-            onEnterKeyPress={handleReenteredPasswordEnterKeyPress}
           />
 
-          <SubmitButton text="Save" form={form} onPress={onSignupSubmit} />
-        </>
+          <PrimaryButton
+            title="Save"
+            type="submit"
+            loading={submitLoading}
+            disabled={submitDisabled}
+          />
+        </Form>
       );
     }
 
@@ -170,36 +172,61 @@ export default function Signup() {
   const { setToken } = useAuth();
 
   const [step, setStep] = useState(0);
-  const [error, setError] = useState<ExtendedError | null>(null);
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
   const [showGoogleSignup, setShowGoogleSignup] = useState<boolean>(true);
 
-  const emailInputRef = useRef<HTMLInputElement | null>(null);
-  const reenteredPasswordInputRef = useRef<HTMLInputElement | null>(null);
+  const requestForm = useForm<RequestFormFields>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
+    resolver: yupResolver(requestSchema),
+  });
 
-  const form = useForm(
-    [
-      [
-        { key: "name" },
-        {
-          key: "email",
-          helperText: "Enter a valid email.",
-          validation: emailValidation,
-        },
-      ],
-      [{ key: "code" }],
-      [{ key: "password" }, { key: "reenteredPassword" }],
-    ],
-    step,
-  );
+  const confirmForm = useForm<ConfirmFormFields>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
+    resolver: yupResolver(confirmSchema),
+  });
+
+  const submitForm = useForm<SubmitFormFields>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
+    resolver: yupResolver(submitSchema),
+  });
 
   const requestMutation = useMutation({
     mutationFn: ({ name, email }: RequestParams) =>
       callAPI("/users/signup-request", { name, email }),
+    onSuccess: () => {
+      setShowGoogleSignup(false);
+      setStep(1);
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
   });
 
   const confirmMutation = useMutation({
     mutationFn: ({ email, code }: ConfirmParams) =>
       callAPI("/users/signup-confirmation", { email, code }),
+    onSuccess: () => {
+      setStep(2);
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
   });
 
   const submitMutation = useMutation({
@@ -210,100 +237,74 @@ export default function Signup() {
         code,
         password,
       }),
+    onSuccess: (response: SignupResponse) => {
+      setToken(response.token);
+      navigate("/dashboard");
+    },
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
   });
+
+  const handleRequest = ({ name, email }: RequestFormFields) => {
+    setCustomError(null);
+    requestMutation.mutate({ name, email });
+  };
+
+  const handleConfirm = ({ code }: ConfirmFormFields) => {
+    setCustomError(null);
+    const email = requestForm.getValues().email;
+    confirmMutation.mutate({ email, code });
+  };
+
+  const handleSubmit = ({ password, rePassword }: SubmitFormFields) => {
+    setCustomError(null);
+
+    const name = requestForm.getValues().name;
+    const email = requestForm.getValues().email;
+    const code = confirmForm.getValues().code;
+
+    if (password !== rePassword) {
+      return submitForm.setError("rePassword", {
+        message: "Passwords doesn't match.",
+      });
+    }
+
+    submitMutation.mutate({ name, email, code, password });
+  };
 
   const onGoogleAuthSignup = () => {
     console.log("User requested to signup with google");
   };
 
-  const handleRequestSubmit = async ({ name, email }: FormValues) => {
-    setError(null);
-
-    try {
-      await requestMutation.mutateAsync({ name, email });
-
-      setShowGoogleSignup(false);
-      setStep(1);
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setError(new ExtendedError(err.message, false));
-      }
-    }
-  };
-
-  const handleConfirmationSubmit = async ({ email, code }: FormValues) => {
-    setError(null);
-
-    try {
-      await confirmMutation.mutateAsync({ email, code });
-
-      setStep(2);
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setError(new ExtendedError(err.message, false));
-      }
-    }
-  };
-
-  const handleSignupSubmit = async ({
-    name,
-    email,
-    code,
-    password,
-    reenteredPassword,
-  }: FormValues) => {
-    setError(null);
-
-    if (password !== reenteredPassword) {
-      return setError(new ExtendedError("Passwords doesn't match.", true));
-    }
-
-    try {
-      const response = await submitMutation.mutateAsync({
-        name,
-        email,
-        code,
-        password,
-      });
-
-      setToken(response.token);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (err instanceof ResponseError) {
-        return setError(new ExtendedError(err.message, true));
-      }
-
-      if (err instanceof Error) {
-        return setError(new ExtendedError(err.message, false));
-      }
-    }
-  };
-
   return (
     <AuthLayout
       description={descriptions[step]}
-      error={error}
-      onErrorClose={() => setError(null)}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
       onGoogleAuthClick={onGoogleAuthSignup}
       page="signup"
       showGoogleAuth={showGoogleSignup}
       title="Create a new account"
     >
       <Steps
-        onRequestSubmit={handleRequestSubmit}
-        onConfirmationSubmit={handleConfirmationSubmit}
-        onSignupSubmit={handleSignupSubmit}
-        emailInputRef={emailInputRef}
-        reenteredPasswordInputRef={reenteredPasswordInputRef}
-        form={form}
+        requestLoading={requestMutation.isPending}
+        confirmLoading={confirmMutation.isPending}
+        submitLoading={submitMutation.isPending}
+        requestDisabled={isInvalid<RequestFormFields>(requestForm)}
+        confirmDisabled={isInvalid<ConfirmFormFields>(confirmForm)}
+        submitDisabled={isInvalid<SubmitFormFields>(submitForm)}
+        requestForm={requestForm}
+        confirmForm={confirmForm}
+        submitForm={submitForm}
+        onRequest={handleRequest}
+        onConfirm={handleConfirm}
+        onSubmit={handleSubmit}
         step={step}
       />
     </AuthLayout>

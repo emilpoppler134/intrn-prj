@@ -4,21 +4,28 @@ import { API_ADDRESS } from "../../config";
 import { ExtendedError } from "../../utils/ExtendedError";
 import ErrorAlert from "../ErrorAlert";
 
-type Page = "login" | "signup" | "forgot-password";
+const AUTH_PAGES = {
+  LOGIN: "login",
+  SIGNUP: "signup",
+  FOTGOT_PASSWORD: "forgot-password",
+} as const;
 
-type FooterLinkProps = {
-  page: Page;
+type ObjectValues<T> = T[keyof T];
+type AuthPage = ObjectValues<typeof AUTH_PAGES>;
+
+type FooterProps = {
+  page: AuthPage;
 };
 
-const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
+const Footer: React.FC<FooterProps> = ({ page }) => {
   switch (page) {
-    case "login": {
+    case AUTH_PAGES.LOGIN: {
       return (
-        <p className="mt-6 text-center text-sm font-light text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm font-light text-gray-500">
           <span className="pr-1">Don't have an account yet?</span>
           <Link
             to="/signup"
-            className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+            className="font-medium text-primary-600 hover:underline"
           >
             Signup
           </Link>
@@ -26,13 +33,13 @@ const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
       );
     }
 
-    case "signup": {
+    case AUTH_PAGES.SIGNUP: {
       return (
-        <p className="mt-6 text-center text-sm font-light text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm font-light text-gray-500">
           <span className="pr-1">Already have an account?</span>
           <Link
             to="/login"
-            className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+            className="font-medium text-primary-600 hover:underline"
           >
             Login
           </Link>
@@ -40,13 +47,13 @@ const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
       );
     }
 
-    case "forgot-password": {
+    case AUTH_PAGES.FOTGOT_PASSWORD: {
       return (
-        <p className="mt-6 text-center text-sm font-light text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm font-light text-gray-500">
           <span className="pr-1">Go back to</span>
           <Link
             to="/login"
-            className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+            className="font-medium text-primary-600 hover:underline"
           >
             Login
           </Link>
@@ -60,18 +67,18 @@ const FooterLink: React.FC<FooterLinkProps> = ({ page }) => {
   }
 };
 
-type Props = {
+type AuthLayoutProps = {
   children: ReactNode;
   description?: string;
   error: Error | null;
   onErrorClose: () => void;
   onGoogleAuthClick?: () => void;
-  page: Page;
+  page: AuthPage;
   showGoogleAuth: boolean;
   title: string;
 };
 
-const AuthLayout: React.FC<Props> = ({
+const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   description,
   error,
@@ -98,7 +105,7 @@ const AuthLayout: React.FC<Props> = ({
   return (
     <div className="bg-gray-50 h-full">
       <div className="flex justify-center items-center h-full">
-        <div className="w-full bg-white rounded-lg shadow p-6 lg:px-8 dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
+        <div className="w-full bg-white rounded-lg shadow p-6 lg:px-8 md:mt-0 sm:max-w-md">
           <div className="flex flex-col items-start sm:mx-auto sm:w-full sm:max-w-sm">
             <Link to="/">
               <img
@@ -113,21 +120,21 @@ const AuthLayout: React.FC<Props> = ({
             </h2>
 
             {description === undefined ? null : (
-              <span className="block mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <span className="block mt-4 text-sm text-gray-500">
                 {description}
               </span>
             )}
           </div>
 
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <div className="space-y-6">{children}</div>
+            {children}
           </div>
 
           {!showGoogleAuth ? null : (
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
               <button
                 onClick={handleGoogleAuthClick}
-                className="w-full	px-4 py-2 border flex gap-2 border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:shadow transition duration-150"
+                className="w-full	px-4 py-2 border flex gap-2 border-slate-200 rounded-lg text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150"
               >
                 <img
                   className="w-6 h-6"
@@ -142,7 +149,7 @@ const AuthLayout: React.FC<Props> = ({
             </div>
           )}
 
-          <FooterLink page={page} />
+          <Footer page={page} />
         </div>
       </div>
 

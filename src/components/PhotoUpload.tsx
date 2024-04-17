@@ -1,12 +1,9 @@
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import React from "react";
 
-type PhotoUploadProps = {
-  title: string;
-  description?: string;
-};
+type PhotoUploadProps = {};
 
-const PhotoUpload: React.FC<PhotoUploadProps> = ({ title, description }) => {
+const PhotoUpload: React.FC<PhotoUploadProps> = () => {
   return (
     <div>
       <span className="block text-base font-medium leading-6 text-gray-900">

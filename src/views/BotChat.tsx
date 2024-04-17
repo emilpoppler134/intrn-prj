@@ -1,48 +1,78 @@
 import { PaperAirplaneIcon, UserCircleIcon } from "@heroicons/react/24/solid";
-import { useQuery } from "@tanstack/react-query";
-import { SVGProps } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { SVGProps, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
+import * as yup from "yup";
+import { Form } from "../components/Form";
 import Loading from "../components/Loading";
-import TextInput from "../components/TextInput";
+import TextField from "../components/TextField";
 import Layout from "../components/layouts/Layout";
-import { FormValues, useForm } from "../hooks/useForm";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
+import { ExtendedError } from "../utils/ExtendedError";
+import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
+
+const schema = yup.object().shape({
+  message: yup.string().trim().required("You cant send an empty message."),
+});
+
+type FormFields = yup.InferType<typeof schema>;
+type ChatResponse = { message: string };
 
 export default function BotChat() {
   const { id } = useParams();
 
-  const form = useForm([[{ key: "message", validation: null }]]);
+  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["botChat"],
     queryFn: () => callAPI<Bot>("/bots/find", { id }),
   });
 
-  const handleEnterKeyPress = () => {
-    form.handleSubmit(handleSend);
-  };
+  const form = useForm<FormFields>({
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
+    criteriaMode: "all",
+    resolver: yupResolver(schema),
+  });
 
-  const handleInputButtonPress = () => {
-    form.handleSubmit(handleSend);
-  };
+  const chatMutation = useMutation({
+    mutationFn: ({ message }: FormFields) =>
+      callAPI<ChatResponse>(`/bots/${id}/chat`, { message }),
+    onSuccess: (response: ChatResponse) => {},
+    onError: (err: Error) => {
+      setCustomError(
+        new ExtendedError(
+          err.message,
+          err instanceof ResponseError ? true : false,
+        ),
+      );
+    },
+  });
 
-  const handleSend = ({ message }: FormValues) => {
-    return new Promise<void>((resolve, reject) => {
-      console.log(message);
-      return;
-    });
+  const handleSend = async ({ message }: FormFields) => {
+    setCustomError(null);
+    chatMutation.mutate({ message });
   };
 
   if (error !== null) return <Layout error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
-  const breadcrumb: Breadcrumb = [{ title: data.name }, { title: "Chat" }];
+  const breadcrumb: Breadcrumb = [
+    { title: data.name, to: `/bots/${data.id}/config` },
+    { title: "Chat" },
+  ];
 
   return (
-    <Layout breadcrumb={breadcrumb}>
-      <div className="flex flex-col items-start gap-6 w-full bg-white rounded-lg shadow p-6 dark:border md:mt-0 sm:max-w-lg dark:bg-gray-800 dark:border-gray-700">
+    <Layout
+      breadcrumb={breadcrumb}
+      error={customError}
+      onErrorClose={() => setCustomError(null)}
+    >
+      <div className="flex flex-col items-start gap-6 w-full bg-white rounded-lg shadow p-6 md:mt-0 sm:max-w-lg">
         <div className="flex items-center w-full space-x-4 pb-6 border-b-2 border-gray-100">
           <div className="grid place-items-center">
             <UserCircleIcon
@@ -64,16 +94,14 @@ export default function BotChat() {
               className="h-8 w-8 text-gray-300"
               aria-hidden="true"
             />
-            <div className="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+            <div className="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl">
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-semibold text-gray-900">
                   Name
                 </span>
-                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
-                  11:46
-                </span>
+                <span className="text-sm font-normal text-gray-500">11:46</span>
               </div>
-              <span className="block text-sm font-normal py-2.5 text-gray-900 dark:text-white">
+              <span className="block text-sm font-normal py-2.5 text-gray-900">
                 That's awesome. I think our users will really appreciate the
                 improvements.
               </span>
@@ -81,18 +109,16 @@ export default function BotChat() {
           </div>
         </div>
         <div className="w-full">
-          <TextInput
-            key="message"
-            name="message"
-            type="text"
-            title="Message"
-            form={form}
-            onEnterKeyPress={handleEnterKeyPress}
-            RightButtonIcon={
-              PaperAirplaneIcon as React.FC<SVGProps<SVGElement>>
-            }
-            onRightButtonPress={handleInputButtonPress}
-          />
+          <Form onSubmit={form.handleSubmit(handleSend)}>
+            <TextField
+              form={form}
+              name="message"
+              key="message"
+              title="Message"
+              iconRight
+              Icon={PaperAirplaneIcon as React.FC<SVGProps<SVGElement>>}
+            />
+          </Form>
         </div>
       </div>
     </Layout>
