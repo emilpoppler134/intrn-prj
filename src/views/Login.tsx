@@ -102,7 +102,7 @@ export default function Login() {
         </div>
 
         <PrimaryButton
-          title="Logga in"
+          title="Login"
           type="submit"
           loading={loginMutation.isPending}
           disabled={isInvalid<FormFields>(form)}
