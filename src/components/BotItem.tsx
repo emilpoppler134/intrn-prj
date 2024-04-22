@@ -1,15 +1,22 @@
 import { UserIcon } from "@heroicons/react/24/solid";
+import classNames from "classnames";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Bot } from "../types/Bot";
 
 type BotItemProps = {
   bot: Bot;
+  disabled?: boolean;
 };
 
-const BotItem: React.FC<BotItemProps> = ({ bot }) => {
+const BotItem: React.FC<BotItemProps> = ({ bot, disabled = false }) => {
   return (
-    <div className="flex flex-col">
+    <div
+      className={classNames(
+        { "pointer-events-none": disabled },
+        "flex flex-col",
+      )}
+    >
       <Link to={`/bots/${bot.id}`} className="group">
         <div className="mb-1">
           <span className="text-base text-gray-700">{bot.name}</span>
