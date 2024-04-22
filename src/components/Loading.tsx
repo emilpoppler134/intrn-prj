@@ -6,7 +6,7 @@ const Loading: React.FC = () => {
   const breadcrumb: Breadcrumb = [{ title: "Loading..." }];
 
   return (
-    <Layout breadcrumb={breadcrumb} error={null}>
+    <Layout breadcrumb={breadcrumb}>
       <div className="theme-spinner"></div>
     </Layout>
   );

@@ -1,8 +1,6 @@
 import React, { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
-import { ExtendedError } from "../../utils/ExtendedError";
-import ErrorAlert from "../ErrorAlert";
 
 const AUTH_PAGES = {
   LOGIN: "login",
@@ -70,8 +68,6 @@ const Footer: React.FC<FooterProps> = ({ page }) => {
 type AuthLayoutProps = {
   children: ReactNode;
   description?: string;
-  error: Error | null;
-  onErrorClose: () => void;
   onGoogleAuthClick?: () => void;
   page: AuthPage;
   showGoogleAuth: boolean;
@@ -81,8 +77,6 @@ type AuthLayoutProps = {
 const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   description,
-  error,
-  onErrorClose,
   onGoogleAuthClick,
   page,
   showGoogleAuth,
@@ -92,15 +86,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     if (onGoogleAuthClick === undefined) return;
     onGoogleAuthClick();
   };
-
-  const handleErrorClose = () => {
-    onErrorClose?.();
-  };
-
-  const extendedError =
-    error instanceof ExtendedError
-      ? error
-      : error && new ExtendedError(error.message);
 
   return (
     <div className="bg-gray-50 h-full">
@@ -152,15 +137,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           <Footer page={page} />
         </div>
       </div>
-
-      {!extendedError ? null : extendedError.closeable ? (
-        <ErrorAlert
-          message={extendedError.message}
-          onClose={handleErrorClose}
-        />
-      ) : (
-        <ErrorAlert message={extendedError.message} />
-      )}
     </div>
   );
 };

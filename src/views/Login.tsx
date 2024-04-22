@@ -1,18 +1,17 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { PrimaryButton } from "../components/Buttons";
 import Checkbox from "../components/Checkbox";
-import { Form } from "../components/Form";
+import Form from "../components/Form";
 import PasswordField from "../components/PasswordField";
 import TextField from "../components/TextField";
+import Warnings from "../components/Warnings";
 import AuthLayout from "../components/layouts/AuthLayout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import isInvalid from "../utils/isInvalid";
 
@@ -28,7 +27,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { setToken } = useAuth();
 
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
 
   const form = useForm<FormFields>({
     mode: "onChange",
@@ -45,17 +44,12 @@ export default function Login() {
       navigate("/dashboard");
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleLogin = async ({ email, password }: FormFields) => {
-    setCustomError(null);
+    clearWarnings();
     loginMutation.mutate({ email, password });
   };
 
@@ -69,8 +63,6 @@ export default function Login() {
 
   return (
     <AuthLayout
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
       onGoogleAuthClick={onGoogleAuthLogin}
       page="login"
       showGoogleAuth={true}
@@ -108,6 +100,8 @@ export default function Login() {
           disabled={isInvalid<FormFields>(form)}
         />
       </Form>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </AuthLayout>
   );
 }

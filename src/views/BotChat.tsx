@@ -1,18 +1,19 @@
 import { PaperAirplaneIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { SVGProps, useState } from "react";
+import { SVGProps } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import * as yup from "yup";
-import { Form } from "../components/Form";
+import Form from "../components/Form";
 import Loading from "../components/Loading";
 import TextField from "../components/TextField";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 
 const schema = yup.object().shape({
@@ -25,7 +26,7 @@ type ChatResponse = { message: string };
 export default function BotChat() {
   const { id } = useParams();
 
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["botChat"],
@@ -44,21 +45,16 @@ export default function BotChat() {
       callAPI<ChatResponse>(`/bots/${id}/chat`, { message }),
     onSuccess: (response: ChatResponse) => {},
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleSend = async ({ message }: FormFields) => {
-    setCustomError(null);
+    clearWarnings();
     chatMutation.mutate({ message });
   };
 
-  if (error !== null) return <Layout error={error} />;
+  if (error !== null) return <ErrorLayout error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
   const breadcrumb: Breadcrumb = [
@@ -67,11 +63,7 @@ export default function BotChat() {
   ];
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <div className="flex flex-col items-start gap-6 w-full bg-white rounded-lg shadow p-6 md:mt-0 sm:max-w-lg">
         <div className="flex items-center w-full space-x-4 pb-6 border-b-2 border-gray-100">
           <div className="grid place-items-center">
@@ -121,6 +113,8 @@ export default function BotChat() {
           </Form>
         </div>
       </div>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }

@@ -5,10 +5,12 @@ type FormProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-export const Form: React.FC<FormProps> = ({ children, onSubmit }) => {
+const Form: React.FC<FormProps> = ({ children, onSubmit }) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">{children}</div>
     </form>
   );
 };
+
+export default Form;

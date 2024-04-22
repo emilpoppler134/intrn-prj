@@ -1,6 +1,6 @@
 import { ErrorCode } from "../types/StatusCode";
 
-export class ResponseError extends Error {
+export class ControlledError extends Error {
   status: ErrorCode;
 
   constructor(

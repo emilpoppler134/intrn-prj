@@ -5,13 +5,13 @@ import { UseFormReturn, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { PrimaryButton } from "../components/Buttons";
-import { Form } from "../components/Form";
+import Form from "../components/Form";
 import PasswordField from "../components/PasswordField";
 import TextField from "../components/TextField";
+import Warnings from "../components/Warnings";
 import AuthLayout from "../components/layouts/AuthLayout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import isInvalid from "../utils/isInvalid";
 
@@ -171,8 +171,8 @@ export default function Signup() {
   const navigate = useNavigate();
   const { setToken } = useAuth();
 
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
   const [step, setStep] = useState(0);
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
   const [showGoogleSignup, setShowGoogleSignup] = useState<boolean>(true);
 
   const requestForm = useForm<RequestFormFields>({
@@ -204,12 +204,7 @@ export default function Signup() {
       setStep(1);
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
@@ -220,12 +215,7 @@ export default function Signup() {
       setStep(2);
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
@@ -242,28 +232,23 @@ export default function Signup() {
       navigate("/dashboard");
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleRequest = ({ name, email }: RequestFormFields) => {
-    setCustomError(null);
+    clearWarnings();
     requestMutation.mutate({ name, email });
   };
 
   const handleConfirm = ({ code }: ConfirmFormFields) => {
-    setCustomError(null);
+    clearWarnings();
     const email = requestForm.getValues().email;
     confirmMutation.mutate({ email, code });
   };
 
   const handleSubmit = ({ password, rePassword }: SubmitFormFields) => {
-    setCustomError(null);
+    clearWarnings();
 
     const name = requestForm.getValues().name;
     const email = requestForm.getValues().email;
@@ -285,8 +270,6 @@ export default function Signup() {
   return (
     <AuthLayout
       description={descriptions[step]}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
       onGoogleAuthClick={onGoogleAuthSignup}
       page="signup"
       showGoogleAuth={showGoogleSignup}
@@ -307,6 +290,8 @@ export default function Signup() {
         onSubmit={handleSubmit}
         step={step}
       />
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </AuthLayout>
   );
 }

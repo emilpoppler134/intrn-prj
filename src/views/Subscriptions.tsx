@@ -1,15 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SubmitButton } from "../components/Buttons";
 import Loading from "../components/Loading";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { PaymentIntent } from "../types/PaymentIntent";
 import { Product } from "../types/Product";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 
 type MutationParams = {
@@ -22,7 +22,7 @@ export default function Subscriptions() {
   const { user } = useAuth();
   if (!user) return null;
 
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["products"],
@@ -40,31 +40,23 @@ export default function Subscriptions() {
       navigate("/subscriptions/payment?" + searchParams.join("&"));
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const onCreatePaymentIntent = async (productId: string) => {
-    setCustomError(null);
+    clearWarnings();
     createMutation.mutate({ id: productId });
   };
 
   const breadcrumb: Breadcrumb = [{ title: "Subscriptions" }];
 
-  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (error !== null)
+    return <ErrorLayout breadcrumb={breadcrumb} error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <div className="mx-auto max-w-2xl">
         {data.map((product) => (
           <div
@@ -99,6 +91,8 @@ export default function Subscriptions() {
           </div>
         ))}
       </div>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }

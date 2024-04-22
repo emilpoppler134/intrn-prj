@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import React, { FormEvent, Fragment, ReactNode, SVGProps, useRef } from "react";
 import { CancelButton, SubmitButton } from "./Buttons";
-import { Form } from "./Form";
+import Form from "./Form";
 
 type ModalProps = {
   children: ReactNode;

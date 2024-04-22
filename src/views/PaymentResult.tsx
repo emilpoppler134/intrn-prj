@@ -3,11 +3,12 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import PaymentResultHandler from "../components/PaymentResultHandler";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
 import { STRIPE_PUBLIC_KEY } from "../config";
+import { ErrorWarning } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
@@ -34,15 +35,10 @@ export default function PaymentResult() {
         navigate("/dashboard", { replace: true, state: { notification } });
       });
     },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ResponseError
-          ? err.message + " Please try signing out and signing in again."
-          : "Something went wrong.";
-
+    onError: (err: Error) => {
       navigate("/dashboard/", {
         replace: true,
-        state: { error: { message } },
+        state: { error: new ErrorWarning(err.message) },
       });
     },
   });
@@ -55,8 +51,6 @@ export default function PaymentResult() {
       }
 
       case "requires_payment_method": {
-        const message = "Payment failed. Please try another payment method.";
-
         const searchParams = [
           "payment_intent_client_secret=" + clientSecret,
           "product_id=" + productId,
@@ -64,14 +58,16 @@ export default function PaymentResult() {
 
         navigate("/subscriptions/payment?" + searchParams.join("&"), {
           replace: true,
-          state: { error: { message } },
+          state: {
+            error: new ErrorWarning(
+              "Payment failed. Please try another payment method.",
+            ),
+          },
         });
         break;
       }
 
       default: {
-        const message = "Something went wrong.";
-
         const searchParams = [
           "payment_intent_client_secret=" + clientSecret,
           "product_id=" + productId,
@@ -79,7 +75,9 @@ export default function PaymentResult() {
 
         navigate("/subscriptions/payment?" + searchParams.join("&"), {
           replace: true,
-          state: { error: { message } },
+          state: {
+            error: new ErrorWarning("Something went wrong."),
+          },
         });
         break;
       }
@@ -94,7 +92,7 @@ export default function PaymentResult() {
 
   if (!stripePromise || clientSecret === null || productId === null) {
     return (
-      <Layout
+      <ErrorLayout
         breadcrumb={breadcrumb}
         error={new Error("Something went wrong.")}
       />

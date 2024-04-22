@@ -4,8 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
 import PaymentForm from "../components/PaymentForm";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
 import { APP_ADDRESS, STRIPE_PUBLIC_KEY } from "../config";
+import { useWarnings } from "../hooks/useWarnings";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { Product } from "../types/Product";
 import { callAPI } from "../utils/apiService";
@@ -14,6 +17,8 @@ const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 export default function Payment() {
   const { search } = useLocation();
+
+  const { warnings, removeWarning } = useWarnings();
 
   const clientSecret = new URLSearchParams(search).get(
     "payment_intent_client_secret",
@@ -34,14 +39,15 @@ export default function Payment() {
 
   if (!stripePromise || clientSecret === null || productId === null) {
     return (
-      <Layout
+      <ErrorLayout
         breadcrumb={breadcrumb}
         error={new Error("Something went wrong.")}
       />
     );
   }
 
-  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (error !== null)
+    return <ErrorLayout breadcrumb={breadcrumb} error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
   return (
@@ -68,6 +74,8 @@ export default function Payment() {
           </div>
         </div>
       </Elements>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }

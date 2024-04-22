@@ -1,18 +1,19 @@
 import { API_ADDRESS } from "../config";
 import { ErrorCode, SuccessCode } from "../types/StatusCode";
-import { ResponseError } from "./ResponseError";
+import { ControlledError } from "./ControlledError";
 
 type JSONValue = string | number | boolean | None | JSONObject | JSONArray;
 type JSONObject = { [key: string]: JSONValue };
 type JSONArray = Array<JSONValue>;
 type None = null | undefined;
+type Data = JSONObject | JSONArray;
 
 type CustomResponse = Response & { status: SuccessCode | ErrorCode };
 type ErrorResponseData = { message: string };
 
-export async function callAPI<T extends JSONValue | void = void>(
+export async function callAPI<T extends Data | void = void>(
   url: string,
-  body?: JSONValue,
+  body?: Data,
 ): Promise<T> {
   const token = localStorage.getItem("token");
 
@@ -57,5 +58,5 @@ export async function callAPI<T extends JSONValue | void = void>(
     }
   }
 
-  throw new ResponseError(response.status, error.message);
+  throw new ControlledError(response.status, error.message);
 }

@@ -1,16 +1,16 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { UseFormReturn, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { PrimaryButton } from "../components/Buttons";
-import { Form } from "../components/Form";
+import Form from "../components/Form";
 import PasswordField from "../components/PasswordField";
 import TextField from "../components/TextField";
+import Warnings from "../components/Warnings";
 import AuthLayout from "../components/layouts/AuthLayout";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { callAPI } from "../utils/apiService";
 import isInvalid from "../utils/isInvalid";
 
@@ -164,10 +164,8 @@ const Steps: React.FC<StepProps> = ({
 export default function ForgotPassword() {
   const navigate = useNavigate();
 
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
   const [step, setStep] = useState(0);
-  const [error, setError] = useState<ExtendedError | null>(null);
-
-  const reenteredPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
   const requestForm = useForm<RequestFormFields>({
     mode: "onChange",
@@ -197,12 +195,7 @@ export default function ForgotPassword() {
       setStep(1);
     },
     onError: (err: Error) => {
-      setError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
@@ -213,12 +206,7 @@ export default function ForgotPassword() {
       setStep(2);
     },
     onError: (err: Error) => {
-      setError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
@@ -229,28 +217,23 @@ export default function ForgotPassword() {
       navigate("/login");
     },
     onError: (err: Error) => {
-      setError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleRequest = ({ email }: RequestFormFields) => {
-    setError(null);
+    clearWarnings();
     requestMutation.mutate({ email });
   };
 
   const handleConfirm = ({ code }: ConfirmFormFields) => {
-    setError(null);
+    clearWarnings();
     const email = requestForm.getValues().email;
     confirmMutation.mutate({ email, code });
   };
 
   const handleSubmit = ({ password, rePassword }: SubmitFormFields) => {
-    setError(null);
+    clearWarnings();
 
     const email = requestForm.getValues().email;
     const code = confirmForm.getValues().code;
@@ -267,8 +250,6 @@ export default function ForgotPassword() {
   return (
     <AuthLayout
       description={descriptions[step]}
-      error={error}
-      onErrorClose={() => setError(null)}
       page="forgot-password"
       showGoogleAuth={false}
       title="Forgot password"
@@ -288,6 +269,8 @@ export default function ForgotPassword() {
         onSubmit={handleSubmit}
         step={step}
       />
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </AuthLayout>
   );
 }

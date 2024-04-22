@@ -9,12 +9,13 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { RevokeButton, SubmitButton } from "../components/Buttons";
 import Loading from "../components/Loading";
 import SidebarItem from "../components/SidebarItem";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { Subscription } from "../types/Subscription";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import { formatUnixDate, formatUnixDateTime } from "../utils/formatUnixDate";
 
@@ -197,6 +198,8 @@ export default function Settings() {
   const { user, signNewToken } = useAuth();
   if (!user) return null;
 
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
+
   const subscription = user.subscription;
   const hasSubscription = subscription.status !== null;
 
@@ -207,7 +210,6 @@ export default function Settings() {
       : SETTINGS_PAGES.ACCOUNT;
 
   const [page, setPage] = useState<SettingsPage>(defaultPage);
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
   const { data, error, isLoading } = useQuery({
     queryKey: ["subscription"],
@@ -232,12 +234,7 @@ export default function Settings() {
       });
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
@@ -255,24 +252,19 @@ export default function Settings() {
       });
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleCancelSubscription = async () => {
     if (!hasSubscription || data === undefined) return;
-    setCustomError(null);
+    clearWarnings();
     cancelMutation.mutate({ id: data.id });
   };
 
   const handlePayInvoice = async () => {
     if (!hasSubscription || data === undefined) return;
-    setCustomError(null);
+    clearWarnings();
     payMutation.mutate({ id: data.id });
   };
 
@@ -286,15 +278,12 @@ export default function Settings() {
 
   const breadcrumb: Breadcrumb = [{ title: "Settings" }, { title: pageTitle }];
 
-  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (error !== null)
+    return <ErrorLayout breadcrumb={breadcrumb} error={error} />;
   if (isLoading || (hasSubscription && data === undefined)) return <Loading />;
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <div className="flex gap-8 w-full">
         <div className="flex w-full max-w-[20rem] flex-col bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">
@@ -320,6 +309,8 @@ export default function Settings() {
           />
         </div>
       </div>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }

@@ -11,18 +11,7 @@ import { Link, useLocation } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
 import { useAuth } from "../../provider/authProvider";
 import { Breadcrumb } from "../../types/Breadcrumb";
-import { ExtendedError } from "../../utils/ExtendedError";
-import ErrorAlert from "./../ErrorAlert";
 import Notification from "./../Notification";
-
-type StateContent = {
-  stateError: StateErrorProps | null;
-  notification: NotificationProps | null;
-};
-
-type StateErrorProps = {
-  message: string;
-};
 
 type NotificationProps = {
   title: string;
@@ -32,46 +21,25 @@ type NotificationProps = {
 type LayoutProps = {
   children?: ReactNode;
   breadcrumb?: Breadcrumb;
-  error?: Error | null;
-  onErrorClose?: () => void;
 };
 
 const navigation = [{ name: "Dashboard", href: "/dashboard", current: true }];
 
-const Layout: React.FC<LayoutProps> = ({
-  children,
-  breadcrumb,
-  error,
-  onErrorClose,
-}) => {
+const Layout: React.FC<LayoutProps> = ({ children, breadcrumb }) => {
   const { state } = useLocation();
 
   const { user, setToken } = useAuth();
   if (!user) return null;
 
-  const { stateError, notification } = ((): StateContent => {
-    if (!state) return { stateError: null, notification: null };
-
-    const stateError = state.error;
-    const notification = state.notification;
-
+  const notification = ((): NotificationProps | null => {
+    if (!state || !state.notification) return null;
     window.history.replaceState({}, "");
-
-    return { stateError, notification };
+    return state.notification as NotificationProps;
   })();
 
   const handleLogout = async () => {
     setToken(null);
   };
-
-  const handleErrorClose = () => {
-    onErrorClose?.();
-  };
-
-  const extendedError =
-    error instanceof ExtendedError
-      ? error
-      : error && new ExtendedError(error.message);
 
   if (breadcrumb === undefined) {
     breadcrumb = [{ title: "Error" }];
@@ -318,17 +286,6 @@ const Layout: React.FC<LayoutProps> = ({
             {children}
           </div>
         </main>
-
-        {!extendedError ? null : extendedError.closeable ? (
-          <ErrorAlert
-            message={extendedError.message}
-            onClose={handleErrorClose}
-          />
-        ) : (
-          <ErrorAlert message={extendedError.message} />
-        )}
-
-        {!stateError ? null : <ErrorAlert message={stateError.message} />}
 
         {!notification ? null : (
           <Notification

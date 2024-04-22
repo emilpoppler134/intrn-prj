@@ -1,21 +1,21 @@
 import { PaperClipIcon } from "@heroicons/react/24/solid";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
 import { CancelButton, SubmitButton } from "../components/Buttons";
-import { Form } from "../components/Form";
+import Form from "../components/Form";
 import Loading from "../components/Loading";
 import PhotoUpload from "../components/PhotoUpload";
 import TextArea from "../components/TextArea";
 import TextField from "../components/TextField";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
 import { callAPI } from "../utils/apiService";
 import isInvalid from "../utils/isInvalid";
 
@@ -29,7 +29,7 @@ export default function BotConfig() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
 
   const form = useForm<FormFields>({
     mode: "onChange",
@@ -50,17 +50,12 @@ export default function BotConfig() {
       console.log("updated");
     },
     onError: (err: Error) => {
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleUpdate = ({ name }: FormFields) => {
-    setCustomError(null);
+    clearWarnings();
     updateMutation.mutate({ name });
   };
 
@@ -69,17 +64,13 @@ export default function BotConfig() {
     navigate("/dashboard");
   };
 
-  if (error !== null) return <Layout error={error} />;
+  if (error !== null) return <ErrorLayout error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
   const breadcrumb: Breadcrumb = [{ title: data.name }, { title: "Config" }];
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <div className="w-full max-w-4xl mx-auto rounded-lg bg-white p-10 ring-1 ring-inset ring-gray-900/5">
         <Form onSubmit={form.handleSubmit(handleUpdate)}>
           <div className="flex flex-col space-y-12">
@@ -189,6 +180,8 @@ export default function BotConfig() {
           </div>
         </Form>
       </div>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }

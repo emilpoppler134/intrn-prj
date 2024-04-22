@@ -10,14 +10,21 @@ import BotItem from "../components/BotItem";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
 import TextField from "../components/TextField";
-import WarningAlert from "../components/WarningAlert";
+import Warnings from "../components/Warnings";
+import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import {
+  DefaultWarning,
+  ErrorWarning,
+  useWarnings,
+} from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { ErrorCode } from "../types/StatusCode";
-import { ExtendedError } from "../utils/ExtendedError";
-import { ResponseError } from "../utils/ResponseError";
+import { User } from "../types/User";
+import { Warning, WarningType } from "../types/Warning";
+import { ControlledError } from "../utils/ControlledError";
 import { callAPI } from "../utils/apiService";
 import isInvalid from "../utils/isInvalid";
 
@@ -31,14 +38,39 @@ const schema = yup.object().shape({
 type FormFields = yup.InferType<typeof schema>;
 type CreateResponse = Bot;
 
+const defaultWarning = (user: User): Warning | undefined => {
+  switch (user.subscription.status) {
+    case "past_due": {
+      return new DefaultWarning("You have an unpaid invoice.", {
+        title: "Manage subscription",
+        to: "/settings?page=subscription",
+      });
+    }
+
+    case null: {
+      return new DefaultWarning(
+        "You dont have a subscription.",
+        { title: "Start a subscription", to: "/subscriptions" },
+        false,
+      );
+    }
+
+    default: {
+      return undefined;
+    }
+  }
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const { user } = useAuth();
   if (!user) return null;
 
+  const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings(
+    defaultWarning(user),
+  );
   const [open, setOpen] = useState<boolean>(false);
-  const [customError, setCustomError] = useState<ExtendedError | null>(null);
 
   const form = useForm<FormFields>({
     mode: "onChange",
@@ -48,7 +80,7 @@ export default function Dashboard() {
   });
 
   const { data, error, isLoading } = useQuery({
-    queryKey: ["botList"],
+    queryKey: ["bots"],
     queryFn: () => callAPI<Array<Bot>>("/bots/list"),
   });
 
@@ -66,31 +98,26 @@ export default function Dashboard() {
       });
     },
     onError: (err: Error) => {
-      if (err instanceof ResponseError && err.status === ErrorCode.CONFLICT) {
+      if (err instanceof ControlledError && err.status === ErrorCode.CONFLICT) {
         return form.setError("name", {
           message: err.message,
         });
       }
 
-      setCustomError(
-        new ExtendedError(
-          err.message,
-          err instanceof ResponseError ? true : false,
-        ),
-      );
+      pushWarning(new ErrorWarning(err.message));
     },
   });
 
   const handleCreate = ({ name }: FormFields) => {
-    setCustomError(null);
+    clearWarnings(WarningType.Error);
     createMutation.mutate({ name });
   };
 
   const handleOpen = () => {
     if (user.subscription.status === null) {
-      return setCustomError(
-        new ExtendedError("You need a subscription to create a bot.", true),
-      );
+      clearWarnings(WarningType.Error);
+      pushWarning(new ErrorWarning("You dont have a subscription."));
+      return;
     }
 
     setOpen(true);
@@ -103,15 +130,12 @@ export default function Dashboard() {
 
   const breadcrumb: Breadcrumb = [{ title: "Overview" }];
 
-  if (error !== null) return <Layout breadcrumb={breadcrumb} error={error} />;
+  if (error !== null)
+    return <ErrorLayout breadcrumb={breadcrumb} error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
   return (
-    <Layout
-      breadcrumb={breadcrumb}
-      error={customError}
-      onErrorClose={() => setCustomError(null)}
-    >
+    <Layout breadcrumb={breadcrumb}>
       <div className="mx-auto max-w-2xl">
         {data.length > 0 ? (
           <div>
@@ -119,7 +143,11 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-4 gap-12 mt-8">
               {data.map((item) => (
-                <BotItem key={item.id} bot={item} />
+                <BotItem
+                  key={item.id}
+                  bot={item}
+                  disabled={user.subscription.status === null}
+                />
               ))}
 
               <div className="flex flex-col">
@@ -175,26 +203,21 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        <Modal
-          show={open}
-          title="New bot"
-          Icon={UserIcon as React.FC<SVGProps<SVGElement>>}
-          loading={createMutation.isPending}
-          disabled={isInvalid<FormFields>(form)}
-          onSubmit={form.handleSubmit(handleCreate)}
-          onCancel={handleClose}
-        >
-          <TextField form={form} name="name" key="name" title="Name" />
-        </Modal>
-
-        {user.subscription.status === null && (
-          <WarningAlert
-            message="You dont have a subscription."
-            link={{ title: "Start a subscription.", to: "/subscriptions" }}
-          />
-        )}
       </div>
+
+      <Modal
+        show={open}
+        title="New bot"
+        Icon={UserIcon as React.FC<SVGProps<SVGElement>>}
+        loading={createMutation.isPending}
+        disabled={isInvalid<FormFields>(form)}
+        onSubmit={form.handleSubmit(handleCreate)}
+        onCancel={handleClose}
+      >
+        <TextField form={form} name="name" key="name" title="Name" />
+      </Modal>
+
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>
   );
 }
