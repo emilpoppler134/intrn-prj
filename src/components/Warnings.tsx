@@ -8,7 +8,6 @@ type WarningsProps = {
 };
 
 const Warnings: React.FC<WarningsProps> = ({ list, onClose }) => {
-  console.log(list);
   return (
     <div className="fixed top-4 left-2/4 translate-x-[-50%] w-full max-w-xl z-30">
       <div className="flex flex-col space-y-2">
