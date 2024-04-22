@@ -68,13 +68,25 @@ module.exports = {
   },
   safelist: [
     "text-white",
-    "text-gray-700",
+    {
+      pattern: /text-(gray|red|yellow)-700/,
+    },
     {
       pattern: /ring-(primary|red|gray)-(600|300)/,
       variants: ["focus"],
     },
     {
-      pattern: /bg-(primary|red|gray|white)-(600|700|100)/,
+      pattern: /border-(red|yellow)-400/,
+    },
+    {
+      pattern: /bg-(primary|red|yellow|gray|white)-(600|700|100|50)/,
+      variants: ["hover"],
+    },
+    {
+      pattern: /fill-(red|yellow)-400/,
+    },
+    {
+      pattern: /stroke-(red|yellow)-(500|600)/,
       variants: ["hover"],
     },
   ],
