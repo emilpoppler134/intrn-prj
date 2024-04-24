@@ -1,6 +1,5 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { useMutation } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import PaymentResultHandler from "../components/PaymentResultHandler";
 import ErrorLayout from "../components/layouts/ErrorLayout";
@@ -23,30 +22,29 @@ export default function PaymentResult() {
   );
   const productId = new URLSearchParams(search).get("product_id");
 
-  const confirmMutation = useMutation({
-    mutationFn: () => callAPI("/subscriptions/confirm"),
-    onSuccess: () => {
-      signNewToken().then(() => {
-        const notification = {
-          title: "Success!",
-          message: "Your subscription has been activated.",
-        };
-
-        navigate("/dashboard", { replace: true, state: { notification } });
-      });
-    },
-    onError: (err: Error) => {
-      navigate("/dashboard/", {
-        replace: true,
-        state: { error: new ErrorWarning(err.message) },
-      });
-    },
-  });
-
-  const callback = (status: string) => {
+  const callback = async (status: string) => {
     switch (status) {
       case "succeeded": {
-        confirmMutation.mutate();
+        try {
+          await callAPI("/subscriptions/confirm");
+          await signNewToken();
+
+          const notification = {
+            title: "Success!",
+            message: "Your subscription has been activated.",
+          };
+
+          navigate("/dashboard", { replace: true, state: { notification } });
+        } catch (err: unknown) {
+          navigate("/dashboard/", {
+            replace: true,
+            state: {
+              error: new ErrorWarning(
+                err instanceof Error ? err.message : "Something went wrong.",
+              ),
+            },
+          });
+        }
         break;
       }
 

@@ -6,6 +6,7 @@ import { SVGProps, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as yup from "yup";
+import { NotificationAlert } from "../components/Alerts";
 import BotItem from "../components/BotItem";
 import Loading from "../components/Loading";
 import Modal from "../components/Modal";
@@ -13,6 +14,7 @@ import TextField from "../components/TextField";
 import Warnings from "../components/Warnings";
 import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { useNotifications } from "../hooks/useNotifications";
 import {
   DefaultWarning,
   ErrorWarning,
@@ -70,6 +72,8 @@ export default function Dashboard() {
   const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings(
     defaultWarning(user),
   );
+  const { notification } = useNotifications();
+
   const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<FormFields>({
@@ -218,6 +222,8 @@ export default function Dashboard() {
       </Modal>
 
       <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
+
+      <NotificationAlert item={notification} />
     </Layout>
   );
 }

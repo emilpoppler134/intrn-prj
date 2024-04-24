@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
+import { NotificationAlert } from "../components/Alerts";
 import { CancelButton, SubmitButton } from "../components/Buttons";
 import Form from "../components/Form";
 import Loading from "../components/Loading";
@@ -13,6 +14,7 @@ import TextField from "../components/TextField";
 import Warnings from "../components/Warnings";
 import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { useNotifications } from "../hooks/useNotifications";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
@@ -30,6 +32,7 @@ export default function BotConfig() {
   const { id } = useParams();
 
   const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
+  const { notification } = useNotifications();
 
   const form = useForm<FormFields>({
     mode: "onChange",
@@ -182,6 +185,8 @@ export default function BotConfig() {
       </div>
 
       <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
+
+      <NotificationAlert item={notification} />
     </Layout>
   );
 }

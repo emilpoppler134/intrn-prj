@@ -6,12 +6,14 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { SVGProps, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { NotificationAlert } from "../components/Alerts";
 import { RevokeButton, SubmitButton } from "../components/Buttons";
 import Loading from "../components/Loading";
 import SidebarItem from "../components/SidebarItem";
 import Warnings from "../components/Warnings";
 import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
+import { useNotifications } from "../hooks/useNotifications";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { Breadcrumb } from "../types/Breadcrumb";
@@ -199,6 +201,7 @@ export default function Settings() {
   if (!user) return null;
 
   const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
+  const { notification } = useNotifications();
 
   const subscription = user.subscription;
   const hasSubscription = subscription.status !== null;
@@ -311,6 +314,8 @@ export default function Settings() {
       </div>
 
       <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
+
+      <NotificationAlert item={notification} />
     </Layout>
   );
 }

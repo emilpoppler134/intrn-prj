@@ -7,16 +7,10 @@ import {
 import { HomeIcon, UserIcon } from "@heroicons/react/24/solid";
 import classNames from "classnames";
 import React, { Fragment, ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { API_ADDRESS } from "../../config";
 import { useAuth } from "../../provider/authProvider";
 import { Breadcrumb } from "../../types/Breadcrumb";
-import Notification from "./../Notification";
-
-type NotificationProps = {
-  title: string;
-  message: string;
-};
 
 type LayoutProps = {
   children?: ReactNode;
@@ -26,16 +20,8 @@ type LayoutProps = {
 const navigation = [{ name: "Dashboard", href: "/dashboard", current: true }];
 
 const Layout: React.FC<LayoutProps> = ({ children, breadcrumb }) => {
-  const { state } = useLocation();
-
   const { user, setToken } = useAuth();
   if (!user) return null;
-
-  const notification = ((): NotificationProps | null => {
-    if (!state || !state.notification) return null;
-    window.history.replaceState({}, "");
-    return state.notification as NotificationProps;
-  })();
 
   const handleLogout = async () => {
     setToken(null);
@@ -286,13 +272,6 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb }) => {
             {children}
           </div>
         </main>
-
-        {!notification ? null : (
-          <Notification
-            title={notification.title}
-            message={notification.message}
-          />
-        )}
       </div>
     </>
   );
