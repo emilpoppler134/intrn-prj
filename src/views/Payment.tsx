@@ -53,7 +53,7 @@ export default function Payment() {
   return (
     <Layout breadcrumb={breadcrumb}>
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        <div className="app-payment flex justify-between w-full max-w-4xl mx-auto">
+        <div className="app-payment flex justify-between w-full max-w-4xl mx-auto pt-6">
           <div className="w-full max-w-96">
             <div className="mt-4">
               <p className="text-lg font-semibold text-gray-600">{data.name}</p>

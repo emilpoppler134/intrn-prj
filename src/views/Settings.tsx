@@ -287,7 +287,7 @@ export default function Settings() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="flex gap-8 w-full">
+      <div className="flex gap-8 w-full pt-6">
         <div className="flex w-full max-w-[20rem] flex-col bg-clip-border py-4 text-gray-700">
           <nav className="flex flex-col p-2 text-base">
             {navigation.map((item) => (

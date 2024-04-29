@@ -57,7 +57,7 @@ export default function Subscriptions() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl pt-6">
         {data.map((product) => (
           <div
             key={product.id}

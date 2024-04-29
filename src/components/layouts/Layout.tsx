@@ -268,7 +268,7 @@ const Layout: React.FC<LayoutProps> = ({ children, breadcrumb }) => {
             </div>
           </header>
 
-          <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 [&>div]:w-full">
+          <div className="flex-1 flex justify-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 [&>div]:w-full">
             {children}
           </div>
         </main>

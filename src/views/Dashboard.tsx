@@ -140,7 +140,7 @@ export default function Dashboard() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl pt-6">
         {data.length > 0 ? (
           <div>
             <span className="px-p text-xl">Avaliable chatbots</span>
