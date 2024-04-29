@@ -12,7 +12,7 @@ import Warnings from "../components/Warnings";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { callAPI } from "../utils/apiService";
-import isInvalid from "../utils/isInvalid";
+import { isInvalid } from "../utils/isInvalid";
 
 const requestSchema = yup.object().shape({
   email: yup

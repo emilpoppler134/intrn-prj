@@ -13,7 +13,7 @@ import AuthLayout from "../components/layouts/AuthLayout";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { callAPI } from "../utils/apiService";
-import isInvalid from "../utils/isInvalid";
+import { isInvalid } from "../utils/isInvalid";
 
 const requestSchema = yup.object().shape({
   name: yup.string().required("Name cannot be empty."),

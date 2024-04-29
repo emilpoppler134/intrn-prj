@@ -28,7 +28,7 @@ import { User } from "../types/User";
 import { Warning, WarningType } from "../types/Warning";
 import { ControlledError } from "../utils/ControlledError";
 import { callAPI } from "../utils/apiService";
-import isInvalid from "../utils/isInvalid";
+import { isInvalid } from "../utils/isInvalid";
 
 const schema = yup.object().shape({
   name: yup

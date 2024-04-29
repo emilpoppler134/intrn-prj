@@ -1,6 +1,6 @@
 import { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
-const TextField = <T extends FieldValues>(
+export const isInvalid = <T extends FieldValues>(
   form: UseFormReturn<T>,
   fields?: Array<Path<T>>,
 ): boolean => {
@@ -19,5 +19,3 @@ const TextField = <T extends FieldValues>(
       form.getFieldState(item).invalid,
   );
 };
-
-export default TextField;
