@@ -1,8 +1,13 @@
+import { Model } from "./Model";
+
 export type Bot = {
   id: string;
   name: string;
-  personality: string;
   photo: string;
-  files: Array<string>;
+  system_prompt: string;
+  model: Model;
+  maxTokens: number;
+  temp: number;
+  topP: number;
   timestamp: number;
 };
