@@ -21,7 +21,7 @@ const RangeInput = <T extends FieldValues>({
       name={name}
       control={form.control}
       render={({
-        field: { onChange, onBlur, ref, value },
+        field: { onChange, onBlur, ref, value = "" },
         fieldState: { error },
       }) => (
         <div>
