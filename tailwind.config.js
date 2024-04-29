@@ -72,6 +72,9 @@ module.exports = {
       pattern: /text-(gray|red|yellow)-700/,
     },
     {
+      pattern: /py-(1|2)/,
+    },
+    {
       pattern: /ring-(primary|red|gray)-(600|300)/,
       variants: ["focus"],
     },
