@@ -112,7 +112,7 @@ export const NotificationAlert: React.FC<NotificationAlertProps> = ({
       clearTimeout(showTimeout);
       clearTimeout(hideTimeout);
     };
-  }, []);
+  }, [item]);
 
   const handleClose = () => {
     setShow(false);
