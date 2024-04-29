@@ -5,20 +5,17 @@ type PhotoUploadProps = {};
 
 const PhotoUpload: React.FC<PhotoUploadProps> = () => {
   return (
-    <div>
-      <span className="block text-base font-medium leading-6 text-gray-900">
-        Photo
-      </span>
-      <div className="mt-4 flex items-center gap-x-3">
-        <UserCircleIcon
-          className="h-14 w-14 text-gray-300"
-          aria-hidden="true"
-        />
-        <div className="inline-flex w-full sm:w-auto">
-          <button className="CustomButton bg-white hover:bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-4 focus:outline-none focus:ring-primary-300">
-            <span className="CustomButton-Text text-gray-700">Change</span>
-          </button>
-        </div>
+    <div className="mt-4 flex items-center gap-x-3">
+      <UserCircleIcon className="h-20 w-20 text-gray-300" aria-hidden="true" />
+      <div className="inline-flex w-full sm:w-auto">
+        <button
+          type="button"
+          className="relative w-full px-4 py-1 rounded-md bg-white hover:bg-gray-100 ring-1 ring-gray-300 focus:ring-4 focus:ring-primary-300"
+        >
+          <span className="text-sm font-semibold text-gray-700 pointer-events-none">
+            Change
+          </span>
+        </button>
       </div>
     </div>
   );
