@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import classNames from "classnames";
-import React, { SVGProps, useState } from "react";
+import { useState } from "react";
 import { Controller, FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 type TextFieldProps<TFieldValues extends FieldValues> = {
@@ -9,10 +9,6 @@ type TextFieldProps<TFieldValues extends FieldValues> = {
   type?: "text" | "password";
   form: UseFormReturn<TFieldValues>;
   defaultValue?: true;
-  onEnterKeyPress?: () => void;
-  Icon?: React.FC<SVGProps<SVGElement>>;
-  iconRight?: boolean;
-  onIconPress?: () => void;
 };
 
 const TextField = <T extends FieldValues>({
@@ -21,31 +17,8 @@ const TextField = <T extends FieldValues>({
   type = "text",
   form,
   defaultValue,
-  onEnterKeyPress,
-  Icon,
-  iconRight,
-  onIconPress,
 }: TextFieldProps<T>): JSX.Element => {
   const [inputFocus, setInputFocus] = useState(false);
-
-  const handleInputKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && onEnterKeyPress !== undefined) {
-      onEnterKeyPress();
-    }
-  };
-
-  const handleInputFocus = () => {
-    setInputFocus(true);
-  };
-
-  const handleInputBlur = () => {
-    setInputFocus(false);
-  };
-
-  const handleIconPress = () => {
-    setInputFocus(false);
-    onIconPress?.();
-  };
 
   return (
     <Controller
@@ -99,40 +72,18 @@ const TextField = <T extends FieldValues>({
                 value={value}
                 placeholder=""
                 onChange={onChange}
-                onKeyUp={handleInputKeyUp}
-                onFocus={handleInputFocus}
+                onFocus={() => setInputFocus(true)}
                 onBlur={() => {
                   onBlur();
-                  handleInputBlur();
+                  setInputFocus(false);
                 }}
                 autoCapitalize="off"
                 autoComplete="off"
                 spellCheck="false"
                 autoCorrect="off"
-                className={classNames(
-                  "w-full h-full py-2 px-3 appearance-none rounded-md text-base",
-                  {
-                    "pr-11": !!iconRight,
-                  },
-                )}
+                className="w-full h-full py-2 px-3 appearance-none rounded-md text-base"
               />
             </div>
-
-            {iconRight && Icon && (
-              <div className="absolute top-0 right-0 bottom-0">
-                <button
-                  className="relative w-[44px] h-[44px] rounded-r-md cursor-pointer hover:bg-gray-100"
-                  onClick={handleIconPress}
-                >
-                  <div className="grid place-items-center">
-                    <Icon
-                      className="block w-6 h-6 fill-gray-800"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </button>
-              </div>
-            )}
           </div>
 
           {error && (
@@ -142,7 +93,7 @@ const TextField = <T extends FieldValues>({
                 aria-hidden="true"
               />
               <span className="block ml-1.5 text-xs text-red-500">
-                {error.message?.toString()}
+                {error.message}
               </span>
             </div>
           )}
