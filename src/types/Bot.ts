@@ -1,13 +1,23 @@
+import { Configuration } from "./Configuration";
+import { Language } from "./Language";
 import { Model } from "./Model";
+import { Prompt } from "./Prompt";
 
 export type Bot = {
   id: string;
   name: string;
-  photo: string;
-  system_prompt: string;
+  photo: string | null;
+  language: Language;
+  prompts: Array<PromptItem>;
   model: Model;
-  maxTokens: number;
-  temp: number;
-  topP: number;
+  configuration: Configuration;
+  maxTokens: number | null;
+  temperature: number | null;
+  topP: number | null;
   timestamp: number;
+};
+
+export type PromptItem = {
+  option: Prompt;
+  value: string;
 };

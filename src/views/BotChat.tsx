@@ -1,8 +1,7 @@
-import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useQuery } from "@tanstack/react-query";
 import { useCompletion } from "ai/react";
-import { SVGProps, useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, useParams } from "react-router-dom";
 import * as yup from "yup";
@@ -17,7 +16,7 @@ import Layout from "../components/layouts/Layout";
 import { API_ADDRESS } from "../config";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
-import { Bot } from "../types/Bot";
+import { Bot, PromptItem } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
 import { Model } from "../types/Model";
 import { callAPI } from "../utils/apiService";
@@ -37,9 +36,9 @@ enum MetricActionType {
   COMPLETE,
 }
 
-interface MetricAction {
+type MetricAction = {
   type: MetricActionType;
-}
+};
 
 type MetricState = {
   startedAt: Date | null;
@@ -59,6 +58,16 @@ type ChatItem = {
 
 const llamaTemplate = LlamaTemplate();
 const llama3Template = Llama3Template();
+
+const convertPromptsToString = (
+  prompts: Array<PromptItem>,
+  language: string,
+): string => {
+  const system_prompt = prompts
+    .map((item) => item.option.subject + " " + item.value + ".")
+    .join(". ");
+  return `You speak the language: ${language}. This is some information about you: ${system_prompt}`;
+};
 
 const generatePrompt = (
   template: (chat: Array<ChatItem>) => string,
@@ -166,7 +175,7 @@ export default function BotChat() {
     // Generate initial prompt and calculate tokens
     let prompt = `${generatePrompt(
       data.bot.model.name.includes("Llama 3") ? llama3Template : llamaTemplate,
-      data.bot.system_prompt,
+      convertPromptsToString(data.bot.prompts, data.bot.language.name),
       messageHistory,
     )}\n`;
 
@@ -186,7 +195,7 @@ export default function BotChat() {
       // Recreate the prompt
       prompt = `${SNIP}\n${generatePrompt(
         llamaTemplate,
-        data?.bot.system_prompt,
+        convertPromptsToString(data.bot.prompts, data.bot.language.name),
         messageHistory,
       )}\n`;
     }
@@ -248,8 +257,6 @@ export default function BotChat() {
                   name="prompt"
                   key="prompt"
                   title="Message"
-                  iconRight
-                  Icon={PaperAirplaneIcon as React.FC<SVGProps<SVGElement>>}
                 />
               </Form>
             </div>

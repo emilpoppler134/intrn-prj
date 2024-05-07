@@ -2,12 +2,14 @@ import { Menu, Transition } from "@headlessui/react";
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
+  ChatBubbleBottomCenterTextIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import {
   EllipsisHorizontalIcon,
   PaperClipIcon,
 } from "@heroicons/react/24/solid";
+
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
@@ -20,9 +22,10 @@ import { CancelButton, SubmitButton } from "../components/Buttons";
 import Form from "../components/Form";
 import Loading from "../components/Loading";
 import PhotoUpload from "../components/PhotoUpload";
+import PromptListInput from "../components/PromptListInput";
+import RadioCardInput from "../components/RadioCardInput";
 import RangeInput from "../components/RangeInput";
 import SelectInput from "../components/SelectInput";
-import TextArea from "../components/TextArea";
 import TextField from "../components/TextField";
 import Warnings from "../components/Warnings";
 import ErrorLayout from "../components/layouts/ErrorLayout";
@@ -31,39 +34,54 @@ import { useNotifications } from "../hooks/useNotifications";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
+import { Configuration } from "../types/Configuration";
+import { Language } from "../types/Language";
 import { Model } from "../types/Model";
+import { Prompt } from "../types/Prompt";
 import { callAPI } from "../utils/apiService";
-import { isInvalid } from "../utils/isInvalid";
 
 const schema = yup.object().shape({
   name: yup
     .string()
     .min(3, "Name must be at least 3 characters")
     .required("Name cannot be empty."),
-  system_prompt: yup
-    .string()
-    .min(20, "Personality must be at least 20 characters long.")
+  photo: yup.string().nullable(),
+  language: yup.string().required("Language is required."),
+  prompts: yup
+    .array()
+    .of(
+      yup.object().shape({
+        option: yup.string().required(),
+        value: yup.string().required(),
+      }),
+    )
+    .min(1, "Personality must be contain at least one item.")
     .required("Personality cannot be empty."),
+  configuration: yup.string().required("Configuration is required."),
   model: yup.string().required("Model is required."),
   maxTokens: yup
     .number()
     .min(1, "Max tokens must be at least 1.")
-    .max(4096, "Max tokens must be at most 4096.")
-    .required("Max tokens cannot be empty"),
-  temp: yup
+    .max(4096, "Max tokens must be at most 4096."),
+  temperature: yup
     .number()
     .min(0.01, "Temperature must be at least 0.01.")
-    .max(5, "Temperature must be at most 5.")
-    .required("Temperature cannot be empty"),
+    .max(5, "Temperature must be at most 5."),
   topP: yup
     .number()
     .min(0.01, "Top P must be at least 0.01.")
-    .max(1, "Top P must be at most 1.")
-    .required("Top P cannot be empty"),
+    .max(1, "Top P must be at most 1."),
 });
 
 type FormFields = yup.InferType<typeof schema>;
-type QueryResponse = { bot: Bot; models: Array<Model> };
+
+type QueryResponse = {
+  bot: Bot;
+  models: Array<Model>;
+  configurations: Array<Configuration>;
+  prompts: Array<Prompt>;
+  languages: Array<Language>;
+};
 
 export default function BotConfig() {
   const navigate = useNavigate();
@@ -125,14 +143,21 @@ export default function BotConfig() {
 
   const setDefaultValues = () => {
     if (!data) return;
+    const bot = data.bot;
 
     const defaultValues = {
-      name: data.bot.name,
-      system_prompt: data.bot.system_prompt,
-      model: data.bot.model._id,
-      maxTokens: data.bot.maxTokens,
-      temp: data.bot.temp,
-      topP: data.bot.topP,
+      name: bot.name,
+      photo: bot.photo ?? undefined,
+      language: bot.language._id,
+      prompts: bot.prompts.map((item) => ({
+        option: item.option._id,
+        value: item.value,
+      })),
+      configuration: bot.configuration._id,
+      model: bot.model._id,
+      maxTokens: bot.maxTokens ?? undefined,
+      temperature: bot.temperature ?? undefined,
+      topP: bot.topP ?? undefined,
     };
 
     form.reset(defaultValues);
@@ -158,7 +183,10 @@ export default function BotConfig() {
   if (isLoading || data === undefined) return <Loading />;
 
   const bot = data.bot;
+  const languages = data.languages;
   const models = data.models;
+  const configurations = data.configurations;
+  const prompts = data.prompts;
 
   const breadcrumb: Breadcrumb = [{ title: bot.name }, { title: "Config" }];
 
@@ -166,7 +194,7 @@ export default function BotConfig() {
     <Layout breadcrumb={breadcrumb}>
       <div className="w-full max-w-5xl mx-auto mb-12 rounded-b-lg bg-white p-10 ring-1 ring-inset ring-gray-900/5">
         <Form onSubmit={form.handleSubmit(handleUpdate)}>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center pb-6 border-b border-gray-900/10">
             <div className="hover:underline">
               <Link to="/dashboard" className="flex items-center">
                 <ArrowLeftIcon className="w-4 h-auto stroke-2 stroke-gray-600" />
@@ -187,14 +215,20 @@ export default function BotConfig() {
               </div>
 
               <div className="rounded-md hover:bg-gray-100 transition-[background] duration-300">
-                <Link to={`/bots/${bot.id}`} className="block py-1 px-3">
-                  <span className="text-sm">Chat</span>
+                <Link to={`/bots/${bot.id}`} className="block py-2 px-3">
+                  <div className="flex items-center">
+                    <ChatBubbleBottomCenterTextIcon
+                      className="w-4 h-4 stroke-gray-600 stroke-2"
+                      aria-hidden="true"
+                    />
+                    <span className="ml-1 text-sm text-gray-600">Chat</span>
+                  </div>
                 </Link>
               </div>
 
               <Menu as="div" className="relative">
-                <div className="flex w-8 h-8">
-                  <Menu.Button className="relative w-full h-full p-1 rounded-md hover:bg-gray-100 transition-[background] duration-300">
+                <div className="flex w-10 h-10">
+                  <Menu.Button className="relative w-full h-full p-2 rounded-md hover:bg-gray-100 transition-[background] duration-300">
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">Open user menu</span>
                     <EllipsisHorizontalIcon className="w-full h-full fill-gray-600" />
@@ -246,7 +280,7 @@ export default function BotConfig() {
             </div>
           </div>
 
-          <div className="flex flex-col space-y-12">
+          <div className="flex flex-col space-y-12 mt-6">
             <div className="border-b border-gray-900/10 pb-12">
               <h2 className="text-base font-semibold leading-7 text-gray-900">
                 Profile
@@ -257,7 +291,7 @@ export default function BotConfig() {
 
               <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div className="col-span-full">
-                  <PhotoUpload />
+                  <PhotoUpload form={form} name="photo" key="photo" />
                 </div>
 
                 <div className="sm:col-span-4">
@@ -270,19 +304,26 @@ export default function BotConfig() {
                   />
                 </div>
 
-                <div className="col-span-full">
-                  {/* <TextField
+                <div className="sm:col-span-4">
+                  <SelectInput
+                    name="language"
                     form={form}
-                    name="system_prompt"
-                    key="system_prompt"
-                    title="Personality"
-                  /> */}
-                  <TextArea
-                    key="system_prompt"
-                    name="system_prompt"
+                    options={languages.map((item) => ({
+                      id: item._id,
+                      title: item.title,
+                      countryCode: item.country_code,
+                    }))}
+                  />
+                </div>
+
+                <div className="col-span-full">
+                  <PromptListInput
+                    form={form}
+                    name="prompts"
+                    key="prompts"
                     title="Personality"
                     description="Write a few sentences about the bot."
-                    rows={3}
+                    options={prompts}
                   />
                 </div>
               </div>
@@ -295,6 +336,70 @@ export default function BotConfig() {
               <span className="mt-1 text-sm leading-6 text-gray-600">
                 Choose how the bot will behave.
               </span>
+
+              <div className="px-4 py-6 flex flex-col sm:px-0">
+                <div className="mt-2">
+                  <RadioCardInput
+                    form={form}
+                    name="configuration"
+                    options={configurations}
+                  />
+                </div>
+              </div>
+
+              {configurations.find(
+                (item) => item._id === form.getValues("configuration"),
+              )?.name === "custom" && (
+                <div>
+                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                    <span className="text-sm font-medium leading-6 text-gray-900">
+                      Max Tokens
+                    </span>
+                    <div className="mt-2">
+                      <RangeInput
+                        form={form}
+                        name="maxTokens"
+                        key="maxTokens"
+                        min={1}
+                        max={4096}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                    <span className="text-sm font-medium leading-6 text-gray-900">
+                      Temperature
+                    </span>
+                    <div className="mt-2">
+                      <RangeInput
+                        form={form}
+                        name="temperature"
+                        key="temp"
+                        min={0.01}
+                        max={5}
+                        step={0.01}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                    <span className="text-sm font-medium leading-6 text-gray-900">
+                      Top P
+                    </span>
+                    <div className="mt-2">
+                      <RangeInput
+                        form={form}
+                        name="topP"
+                        key="topP"
+                        min={0.01}
+                        max={1}
+                        step={0.01}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="px-4 py-6 flex flex-col sm:px-0">
                 <span className="text-sm font-medium leading-6 text-gray-900">
@@ -310,54 +415,6 @@ export default function BotConfig() {
                       title: item.title,
                       description: item.description,
                     }))}
-                  />
-                </div>
-              </div>
-
-              <div className="px-4 py-6 flex flex-col sm:px-0">
-                <span className="text-sm font-medium leading-6 text-gray-900">
-                  Max Tokens
-                </span>
-                <div className="mt-2">
-                  <RangeInput
-                    form={form}
-                    name="maxTokens"
-                    key="maxTokens"
-                    min={1}
-                    max={4096}
-                    step={1}
-                  />
-                </div>
-              </div>
-
-              <div className="px-4 py-6 flex flex-col sm:px-0">
-                <span className="text-sm font-medium leading-6 text-gray-900">
-                  Temperature
-                </span>
-                <div className="mt-2">
-                  <RangeInput
-                    form={form}
-                    name="temp"
-                    key="temp"
-                    min={0.01}
-                    max={5}
-                    step={0.01}
-                  />
-                </div>
-              </div>
-
-              <div className="px-4 py-6 flex flex-col sm:px-0">
-                <span className="text-sm font-medium leading-6 text-gray-900">
-                  Top P
-                </span>
-                <div className="mt-2">
-                  <RangeInput
-                    form={form}
-                    name="topP"
-                    key="topP"
-                    min={0.01}
-                    max={1}
-                    step={0.01}
                   />
                 </div>
               </div>
@@ -431,14 +488,14 @@ export default function BotConfig() {
                 title="Save"
                 type="submit"
                 loading={updateMutation.isPending}
-                disabled={isInvalid<FormFields>(form)}
+                disabled={!form.formState.isValid || !form.formState.isDirty}
               />
             </div>
             <div className="inline-flex w-full mt-3 sm:mt-0 sm:ml-3 sm:w-auto">
               <CancelButton
                 title="Cancel"
                 onPress={handleCancel}
-                disabled={isInvalid<FormFields>(form)}
+                disabled={!form.formState.isValid || !form.formState.isDirty}
               />
             </div>
           </div>
