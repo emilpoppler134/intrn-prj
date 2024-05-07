@@ -2,11 +2,13 @@ import { Menu, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 import { Controller, FieldValues, Path, UseFormReturn } from "react-hook-form";
+import Flag from "react-world-flags";
 
 type SelectOption = {
   id: string;
   title: string;
-  description: string;
+  description?: string;
+  countryCode?: string;
 };
 
 type SelectInputProps<TFieldValues extends FieldValues> = {
@@ -28,8 +30,25 @@ const SelectInput = <T extends FieldValues>({
         <Menu as="div" className="group relative inline-flex w-full">
           <div className="w-full max-w-96">
             <Menu.Button className="inline-flex items-center justify-between w-full px-3 py-2 rounded-md shadow-text-field bg-white hover:bg-gray-50 group-focus-within:shadow-focus transition-[box-shadow]">
-              <span className="text-base font-medium text-gray-700">
-                {options.find((item) => item.id === value)?.title || ""}
+              <span className="flex items-center">
+                {(() => {
+                  const selected = options.find((item) => item.id === value);
+
+                  return (
+                    <>
+                      {selected && selected.countryCode && (
+                        <Flag
+                          code={selected.countryCode}
+                          className="h-2.5 mr-3"
+                        />
+                      )}
+
+                      <span className="text-base font-medium text-gray-700">
+                        {selected ? selected.title : ""}
+                      </span>
+                    </>
+                  );
+                })()}
               </span>
 
               <ChevronDownIcon
@@ -59,13 +78,24 @@ const SelectInput = <T extends FieldValues>({
                     >
                       <div className="flex justify-between">
                         <div className="flex flex-col text-left">
-                          <span className="text-sm text-gray-700">
-                            {item.title}
+                          <span className="flex items-center">
+                            {item.countryCode && (
+                              <Flag
+                                code={item.countryCode}
+                                className="h-2.5 mr-3"
+                              />
+                            )}
+
+                            <span className="text-sm text-gray-700">
+                              {item.title}
+                            </span>
                           </span>
 
-                          <span className="text-xs font-light text-gray-500 pt-1">
-                            {item.description}
-                          </span>
+                          {item.description && (
+                            <span className="text-xs font-light text-gray-500 pt-1">
+                              {item.description}
+                            </span>
+                          )}
                         </div>
 
                         {value === item.id && (
