@@ -24,10 +24,14 @@ const BotItem: React.FC<BotItemProps> = ({ bot, disabled = false }) => {
         <div className="flex flex-col">
           <div className="relative pb-[100%] outline outline-2 outline-gray-300">
             <div className="absolute-center w-full h-full p-4">
-              <UserIcon
-                className="w-full h-full fill-gray-700"
-                aria-hidden="true"
-              />
+              {bot.photo === null ? (
+                <UserIcon
+                  className="w-full h-full fill-gray-700"
+                  aria-hidden="true"
+                />
+              ) : (
+                <img src={bot.photo} alt="" className="w-full h-full" />
+              )}
             </div>
           </div>
           <div className="mt-2">
