@@ -68,6 +68,7 @@ module.exports = {
   },
   safelist: [
     "text-white",
+    "fill-white",
     {
       pattern: /text-(gray|red|yellow)-700/,
     },
@@ -86,7 +87,7 @@ module.exports = {
       variants: ["hover"],
     },
     {
-      pattern: /fill-(red|yellow)-400/,
+      pattern: /fill-(red|yellow|gray)-(400|700)/,
     },
     {
       pattern: /stroke-(red|yellow)-(500|600)/,
