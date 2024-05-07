@@ -12,7 +12,6 @@ import Warnings from "../components/Warnings";
 import AuthLayout from "../components/layouts/AuthLayout";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { callAPI } from "../utils/apiService";
-import { isInvalid } from "../utils/isInvalid";
 
 const requestSchema = yup.object().shape({
   email: yup
@@ -258,9 +257,9 @@ export default function ForgotPassword() {
         requestLoading={requestMutation.isPending}
         confirmLoading={confirmMutation.isPending}
         submitLoading={submitMutation.isPending}
-        requestDisabled={isInvalid<RequestFormFields>(requestForm)}
-        confirmDisabled={isInvalid<ConfirmFormFields>(confirmForm)}
-        submitDisabled={isInvalid<SubmitFormFields>(submitForm)}
+        requestDisabled={!requestForm.formState.isValid}
+        confirmDisabled={!confirmForm.formState.isValid}
+        submitDisabled={!submitForm.formState.isValid}
         requestForm={requestForm}
         confirmForm={confirmForm}
         submitForm={submitForm}

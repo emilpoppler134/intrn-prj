@@ -13,7 +13,6 @@ import AuthLayout from "../components/layouts/AuthLayout";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
 import { callAPI } from "../utils/apiService";
-import { isInvalid } from "../utils/isInvalid";
 
 const requestSchema = yup.object().shape({
   name: yup.string().required("Name cannot be empty."),
@@ -279,9 +278,9 @@ export default function Signup() {
         requestLoading={requestMutation.isPending}
         confirmLoading={confirmMutation.isPending}
         submitLoading={submitMutation.isPending}
-        requestDisabled={isInvalid<RequestFormFields>(requestForm)}
-        confirmDisabled={isInvalid<ConfirmFormFields>(confirmForm)}
-        submitDisabled={isInvalid<SubmitFormFields>(submitForm)}
+        requestDisabled={!requestForm.formState.isValid}
+        confirmDisabled={!confirmForm.formState.isValid}
+        submitDisabled={!submitForm.formState.isValid}
         requestForm={requestForm}
         confirmForm={confirmForm}
         submitForm={submitForm}
