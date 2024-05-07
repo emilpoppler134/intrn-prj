@@ -1,7 +1,9 @@
 import classNames from "classnames";
+import { Icon } from "../types/Icon";
 
 type ButtonProps = {
   title: string;
+  Icon?: Icon;
   type?: "button" | "submit";
   disabled?: boolean;
   loading?: boolean;
@@ -11,6 +13,7 @@ type ButtonProps = {
 type ButtonStylingProps = {
   backgroundColor: "bg-primary-600" | "bg-red-600" | "bg-white";
   color: "text-white" | "text-gray-700";
+  fill: "fill-white" | "fill-gray-700";
   ring: "ring-primary-600" | "ring-red-600" | "ring-gray-300";
   hover: "bg-primary-700" | "bg-red-700" | "bg-gray-100";
   focus: "ring-primary-300" | "ring-red-300";
@@ -22,13 +25,21 @@ const createButtonComponent =
   ({
     backgroundColor,
     color,
+    fill,
     ring,
     hover,
     focus,
     padding,
     fullWidth,
   }: ButtonStylingProps): React.FC<ButtonProps> =>
-  ({ disabled = false, loading = false, onPress, title, type = "button" }) => (
+  ({
+    disabled = false,
+    loading = false,
+    onPress,
+    title,
+    type = "button",
+    Icon,
+  }) => (
     <div
       className={classNames(
         "w-full",
@@ -44,7 +55,17 @@ const createButtonComponent =
           { "pointer-events-none": disabled },
         )}
       >
-        <span className={loading ? "opacity-0" : ""}>
+        <div
+          className={classNames(
+            { "opacity-0": loading },
+            "flex items-center justify-center py-0.5 pointer-events-none",
+          )}
+        >
+          {Icon === undefined ? null : (
+            <div className="grid place-items-center">
+              <Icon className={`w-5 h-5 mr-1 ${fill}`} aria-hidden="true" />
+            </div>
+          )}
           <span
             className={classNames(
               { "text-opacity-60": disabled },
@@ -53,7 +74,7 @@ const createButtonComponent =
           >
             {title}
           </span>
-        </span>
+        </div>
 
         {!loading ? null : <div className="theme-spinner"></div>}
       </button>
@@ -63,6 +84,7 @@ const createButtonComponent =
 export const PrimaryButton = createButtonComponent({
   backgroundColor: "bg-primary-600",
   color: "text-white",
+  fill: "fill-white",
   ring: "ring-primary-600",
   hover: "bg-primary-700",
   focus: "ring-primary-300",
@@ -73,6 +95,7 @@ export const PrimaryButton = createButtonComponent({
 export const SubmitButton = createButtonComponent({
   backgroundColor: "bg-primary-600",
   color: "text-white",
+  fill: "fill-white",
   ring: "ring-primary-600",
   hover: "bg-primary-700",
   focus: "ring-primary-300",
@@ -83,6 +106,7 @@ export const SubmitButton = createButtonComponent({
 export const RevokeButton = createButtonComponent({
   backgroundColor: "bg-red-600",
   color: "text-white",
+  fill: "fill-white",
   ring: "ring-red-600",
   hover: "bg-red-700",
   focus: "ring-red-300",
@@ -93,29 +117,10 @@ export const RevokeButton = createButtonComponent({
 export const CancelButton = createButtonComponent({
   backgroundColor: "bg-white",
   color: "text-gray-700",
+  fill: "fill-gray-700",
   ring: "ring-gray-300",
   hover: "bg-gray-100",
   focus: "ring-primary-300",
   padding: "py-2",
-  fullWidth: false,
-});
-
-export const PrimaryHeaderButton = createButtonComponent({
-  backgroundColor: "bg-primary-600",
-  color: "text-white",
-  ring: "ring-primary-600",
-  hover: "bg-primary-700",
-  focus: "ring-primary-300",
-  padding: "py-1",
-  fullWidth: false,
-});
-
-export const CancelHeaderButton = createButtonComponent({
-  backgroundColor: "bg-white",
-  color: "text-gray-700",
-  ring: "ring-gray-300",
-  hover: "bg-gray-100",
-  focus: "ring-primary-300",
-  padding: "py-1",
   fullWidth: false,
 });
