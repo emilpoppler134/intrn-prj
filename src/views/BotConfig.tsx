@@ -5,10 +5,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import {
-  EllipsisHorizontalIcon,
-  PaperClipIcon,
-} from "@heroicons/react/24/solid";
+import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +16,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
 import { NotificationAlert } from "../components/Alerts";
 import { CancelButton, SubmitButton } from "../components/Buttons";
+import DocumentList from "../components/DocumentList";
 import Form from "../components/Form";
 import Loading from "../components/Loading";
 import { RemoveModal } from "../components/Modal";
@@ -443,51 +441,12 @@ export default function BotConfig() {
                 <span className="text-sm font-medium leading-6 text-gray-900">
                   Attachments
                 </span>
-                <div className="mt-2 text-sm text-gray-900">
-                  <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
-                    <li className="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
-                      <div className="flex w-0 flex-1 items-center">
-                        <PaperClipIcon
-                          className="h-5 w-5 flex-shrink-0 text-gray-400"
-                          aria-hidden="true"
-                        />
-                        <div className="ml-4 flex min-w-0 flex-1 gap-2">
-                          <span className="truncate font-medium">
-                            resume_back_end_developer.pdf
-                          </span>
-                          <span className="flex-shrink-0 text-gray-400">
-                            2.4mb
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4 flex-shrink-0">
-                        <span className="font-medium text-primary-600 hover:text-primary-500">
-                          Download
-                        </span>
-                      </div>
-                    </li>
-                    <li className="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
-                      <div className="flex w-0 flex-1 items-center">
-                        <PaperClipIcon
-                          className="h-5 w-5 flex-shrink-0 text-gray-400"
-                          aria-hidden="true"
-                        />
-                        <div className="ml-4 flex min-w-0 flex-1 gap-2">
-                          <span className="truncate font-medium">
-                            coverletter_back_end_developer.pdf
-                          </span>
-                          <span className="flex-shrink-0 text-gray-400">
-                            4.5mb
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4 flex-shrink-0">
-                        <span className="font-medium text-primary-600 hover:text-primary-500">
-                          Download
-                        </span>
-                      </div>
-                    </li>
-                  </ul>
+                <div className="mt-2">
+                  <DocumentList
+                    files={bot.files}
+                    onUpload={(file) => {}}
+                    onRemove={(id) => {}}
+                  />
                 </div>
               </div>
             </div>

@@ -14,10 +14,18 @@ export type Bot = {
   maxTokens: number | null;
   temperature: number | null;
   topP: number | null;
+  files: Array<FileItem>;
   timestamp: number;
 };
 
 export type PromptItem = {
   option: Prompt;
   value: string;
+};
+
+export type FileItem = {
+  _id: string;
+  name: string;
+  type: string;
+  size: number;
 };
