@@ -231,10 +231,16 @@ export default function BotChat() {
               message={message.text}
               isUser={message.isUser}
               botName={bot.name}
+              botPhoto={bot.photo}
             />
           ))}
 
-          <Message message={completion} isUser={false} botName={bot.name} />
+          <Message
+            message={completion}
+            isUser={false}
+            botName={bot.name}
+            botPhoto={bot.photo}
+          />
 
           {starting && <QueuedSpinner />}
 

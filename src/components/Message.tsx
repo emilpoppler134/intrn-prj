@@ -4,9 +4,15 @@ type MessageProps = {
   message: string;
   isUser: boolean;
   botName: string;
+  botPhoto: string | null;
 };
 
-const Message: React.FC<MessageProps> = ({ message, isUser, botName }) => {
+const Message: React.FC<MessageProps> = ({
+  message,
+  isUser,
+  botName,
+  botPhoto,
+}) => {
   if (Array.isArray(message)) {
     message = message.join("");
   }
@@ -18,7 +24,14 @@ const Message: React.FC<MessageProps> = ({ message, isUser, botName }) => {
   return (
     <div className={`flex gap-x-4 rounded-md py-5 px-5 mb-12`}>
       <div className="flex-shrink-0">
-        <UserCircleIcon className="h-8 w-8 text-gray-300" aria-hidden="true" />
+        {isUser || botPhoto === null ? (
+          <UserCircleIcon
+            className="h-8 w-8 text-gray-300"
+            aria-hidden="true"
+          />
+        ) : (
+          <img src={botPhoto} alt="" className="h-8 w-8" />
+        )}
       </div>
 
       <div className="flex flex-col text-sm sm:text-base flex-1 gap-y-1">
