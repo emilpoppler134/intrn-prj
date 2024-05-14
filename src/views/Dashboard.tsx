@@ -1,4 +1,3 @@
-import { UserIcon } from "@heroicons/react/24/solid";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -8,7 +7,7 @@ import * as yup from "yup";
 import { NotificationAlert } from "../components/Alerts";
 import BotList from "../components/BotList";
 import Loading from "../components/Loading";
-import Modal from "../components/Modal";
+import { CreateModal } from "../components/Modal";
 import TextField from "../components/TextField";
 import Warnings from "../components/Warnings";
 import ErrorLayout from "../components/layouts/ErrorLayout";
@@ -22,7 +21,6 @@ import {
 import { useAuth } from "../provider/authProvider";
 import { Bot } from "../types/Bot";
 import { Breadcrumb } from "../types/Breadcrumb";
-import { Icon } from "../types/Icon";
 import { ErrorCode } from "../types/StatusCode";
 import { User } from "../types/User";
 import { Warning, WarningType } from "../types/Warning";
@@ -147,17 +145,18 @@ export default function Dashboard() {
         />
       </div>
 
-      <Modal
+      <CreateModal
         show={open}
         title="New bot"
-        Icon={UserIcon as Icon}
         loading={createMutation.isPending}
         disabled={!form.formState.isValid}
         onSubmit={form.handleSubmit(handleCreate)}
         onCancel={handleClose}
       >
-        <TextField form={form} name="name" key="name" title="Name" />
-      </Modal>
+        <div className="mb-6 mt-8">
+          <TextField form={form} name="name" key="name" title="Name" />
+        </div>
+      </CreateModal>
 
       <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
       <NotificationAlert item={notification} />

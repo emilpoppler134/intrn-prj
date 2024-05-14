@@ -13,7 +13,7 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import classNames from "classnames";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
@@ -21,6 +21,7 @@ import { NotificationAlert } from "../components/Alerts";
 import { CancelButton, SubmitButton } from "../components/Buttons";
 import Form from "../components/Form";
 import Loading from "../components/Loading";
+import { RemoveModal } from "../components/Modal";
 import PhotoUpload from "../components/PhotoUpload";
 import PromptListInput from "../components/PromptListInput";
 import RadioCardInput from "../components/RadioCardInput";
@@ -90,6 +91,8 @@ export default function BotConfig() {
 
   const { warnings, pushWarning, removeWarning, clearWarnings } = useWarnings();
   const { notification } = useNotifications();
+
+  const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<FormFields>({
     mode: "onChange",
@@ -179,6 +182,14 @@ export default function BotConfig() {
     setDefaultValues();
   };
 
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   if (error !== null) return <ErrorLayout error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
@@ -230,7 +241,7 @@ export default function BotConfig() {
                 <div className="flex w-10 h-10">
                   <Menu.Button className="relative w-full h-full p-2 rounded-md hover:bg-gray-100 transition-[background] duration-300">
                     <span className="absolute -inset-1.5" />
-                    <span className="sr-only">Open user menu</span>
+                    <span className="sr-only">Open dialog</span>
                     <EllipsisHorizontalIcon className="w-full h-full fill-gray-600" />
                   </Menu.Button>
                 </div>
@@ -263,7 +274,7 @@ export default function BotConfig() {
                       {({ active }) => (
                         <button
                           type="button"
-                          onClick={handleRemove}
+                          onClick={handleOpen}
                           className={classNames(
                             { "bg-gray-100": active },
                             "w-full flex items-center gap-2 px-3 py-2 select-none",
@@ -422,7 +433,7 @@ export default function BotConfig() {
 
             <div className="border-b border-gray-900/10 pb-12">
               <h2 className="text-base font-semibold leading-7 text-gray-900">
-                Personal Information
+                Fine tuning
               </h2>
               <span className="mt-1 text-sm leading-6 text-gray-600">
                 Add documents to train the bot.
@@ -502,8 +513,20 @@ export default function BotConfig() {
         </Form>
       </div>
 
-      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
+      <RemoveModal
+        show={open}
+        title="Remove bot"
+        loading={removeMutation.isPending}
+        onSubmit={form.handleSubmit(handleRemove)}
+        onCancel={handleClose}
+      >
+        <p className="text-sm text-gray-500">
+          Are you sure you want to remove the bot {bot.name}? All of {bot.name}
+          's data will be permanently removed. This action cannot be undone.
+        </p>
+      </RemoveModal>
 
+      <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
       <NotificationAlert item={notification} />
     </Layout>
   );

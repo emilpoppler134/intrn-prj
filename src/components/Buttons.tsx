@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { Icon } from "../types/Icon";
 
-type ButtonProps = {
+export type ButtonProps = {
   title: string;
   Icon?: Icon;
   type?: "button" | "submit";
