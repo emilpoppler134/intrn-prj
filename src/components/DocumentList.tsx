@@ -1,36 +1,57 @@
 import { PaperClipIcon } from "@heroicons/react/24/outline";
-import React from "react";
+import React, { useState } from "react";
 import { FileItem } from "../types/Bot";
 import { Icon } from "../types/Icon";
 import DocumentItem from "./DocumentItem";
 import EmptyState from "./EmptyState";
 
 type DocumentListProps = {
-  files: Array<FileItem>;
-  onUpload: (file: File) => void;
+  docs: Array<FileItem>;
+  onUpload: (file: File) => Promise<void>;
   onRemove: (id: string) => void;
 };
 
 const DocumentList: React.FC<DocumentListProps> = ({
-  files,
+  docs,
   onUpload,
   onRemove,
 }) => {
-  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files === null || files.length !== 1) return;
 
-    onUpload(files[0]);
+    setLoading(true);
+
+    await onUpload(files[0]);
+
+    setLoading(false);
+  };
+
+  const handleRemove = (id: string) => {
+    docs.splice(
+      docs.findIndex((doc) => doc._id === id),
+      1,
+    );
+    onRemove(id);
   };
 
   return (
     <div className="w-full text-sm text-gray-900">
-      {files.length > 0 ? (
+      {docs.length > 0 ? (
         <>
           <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
-            {files.map((file) => (
-              <DocumentItem key={file._id} file={file} onRemove={onRemove} />
+            {docs.map((doc) => (
+              <DocumentItem key={doc._id} doc={doc} onRemove={handleRemove} />
             ))}
+
+            {loading && (
+              <li className="relative py-4">
+                <span className="block h-10"></span>
+                <div className="theme-spinner"></div>
+              </li>
+            )}
           </ul>
 
           <div className="group relative mt-4 cursor-pointer inline-flex w-full sm:w-auto">

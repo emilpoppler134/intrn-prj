@@ -37,6 +37,7 @@ import { Configuration } from "../types/Configuration";
 import { Language } from "../types/Language";
 import { Model } from "../types/Model";
 import { Prompt } from "../types/Prompt";
+import { ControlledError } from "../utils/ControlledError";
 import { callAPI } from "../utils/apiService";
 
 const schema = yup.object().shape({
@@ -142,6 +143,33 @@ export default function BotConfig() {
     },
   });
 
+  const removeFileMutation = useMutation({
+    mutationFn: (params: { file: string }) =>
+      callAPI(`/bots/${id}/files/remove`, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (err: Error) => {
+      pushWarning(new ErrorWarning(err.message));
+    },
+  });
+
+  const upload = async (formData: FormData) => {
+    try {
+      await callAPI(`/bots/${id}/files/upload`, formData);
+      await queryClient.invalidateQueries();
+    } catch (err: unknown) {
+      pushWarning(
+        new ErrorWarning(
+          err instanceof ControlledError
+            ? err.message
+            : "Something went wrong.",
+        ),
+      );
+    }
+    return;
+  };
+
   const setDefaultValues = () => {
     if (!data) return;
     const bot = data.bot;
@@ -178,6 +206,20 @@ export default function BotConfig() {
 
   const handleCancel = () => {
     setDefaultValues();
+  };
+
+  const handleUploadFile = async (file: File) => {
+    clearWarnings();
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    await upload(formData);
+  };
+
+  const handleRemoveFile = (file: string) => {
+    clearWarnings();
+    removeFileMutation.mutate({ file });
   };
 
   const handleOpen = () => {
@@ -443,9 +485,9 @@ export default function BotConfig() {
                 </span>
                 <div className="mt-2">
                   <DocumentList
-                    files={bot.files}
-                    onUpload={(file) => {}}
-                    onRemove={(id) => {}}
+                    docs={bot.files}
+                    onUpload={handleUploadFile}
+                    onRemove={handleRemoveFile}
                   />
                 </div>
               </div>

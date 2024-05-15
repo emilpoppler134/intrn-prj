@@ -8,14 +8,17 @@ import {
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import classNames from "classnames";
 import React, { Fragment } from "react";
+import { useAuth } from "../provider/authProvider";
 import { FileItem } from "../types/Bot";
 
 type DocumentItemProps = {
-  file: FileItem;
+  doc: FileItem;
   onRemove: (id: string) => void;
 };
 
-const DocumentItem: React.FC<DocumentItemProps> = ({ file, onRemove }) => {
+const DocumentItem: React.FC<DocumentItemProps> = ({ doc, onRemove }) => {
+  const { token } = useAuth();
+
   const formatSize = (size: number): string => {
     if (size >= 1000000) return size / 1000000 + "mb";
     if (size >= 1000) return size / 1000 + "kb";
@@ -24,10 +27,12 @@ const DocumentItem: React.FC<DocumentItemProps> = ({ file, onRemove }) => {
 
   const handleOpen = () => {};
 
-  const handleDownload = () => {};
+  const handleDownload = () => {
+    window.open(`${doc.url}?t=${token}`, "_blank");
+  };
 
   const handleRemove = () => {
-    onRemove(file._id);
+    onRemove(doc._id);
   };
 
   return (
@@ -39,10 +44,10 @@ const DocumentItem: React.FC<DocumentItemProps> = ({ file, onRemove }) => {
         />
         <div className="ml-4 flex min-w-0 flex-1 gap-2">
           <span className="truncate font-medium">
-            {file.name}.{file.type}
+            {doc.name}.{doc.type}
           </span>
           <span className="flex-shrink-0 text-gray-400">
-            {formatSize(file.size)}
+            {formatSize(doc.size)}
           </span>
         </div>
       </div>

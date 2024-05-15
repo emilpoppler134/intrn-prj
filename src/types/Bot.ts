@@ -28,4 +28,5 @@ export type FileItem = {
   name: string;
   type: string;
   size: number;
+  url: string;
 };

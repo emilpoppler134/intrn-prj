@@ -6,7 +6,7 @@ type JSONValue = string | number | boolean | None | JSONObject | JSONArray;
 type JSONObject = { [key: string]: JSONValue };
 type JSONArray = Array<JSONValue>;
 type None = null | undefined;
-type Data = JSONObject | JSONArray;
+type Data = JSONObject | JSONArray | FormData;
 
 type CustomResponse = Response & { status: SuccessCode | ErrorCode };
 type ErrorResponseData = { message: string };
@@ -17,7 +17,10 @@ export async function callAPI<T extends Data | void = void>(
 ): Promise<T> {
   const token = localStorage.getItem("token");
 
-  const headers = new Headers({ "Content-Type": "application/json" });
+  const headers =
+    body instanceof FormData
+      ? new Headers()
+      : new Headers({ "Content-Type": "application/json" });
 
   if (token !== null) {
     headers.append("Authorization", "Bearer " + token);
@@ -26,7 +29,10 @@ export async function callAPI<T extends Data | void = void>(
   const options: RequestInit = {
     method: "POST",
     headers,
-    body: JSON.stringify(body !== undefined ? body : {}),
+    body:
+      body instanceof FormData
+        ? (body as FormData)
+        : JSON.stringify(body !== undefined ? body : {}),
   };
 
   const response: CustomResponse = await fetch(API_ADDRESS + url, options);
