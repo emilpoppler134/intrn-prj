@@ -1,3 +1,4 @@
+import { Chat } from "./Chat";
 import { Configuration } from "./Configuration";
 import { Language } from "./Language";
 import { Model } from "./Model";
@@ -15,6 +16,7 @@ export type Bot = {
   temperature: number | null;
   topP: number | null;
   files: Array<FileItem>;
+  chat: Array<Chat>;
   timestamp: number;
 };
 

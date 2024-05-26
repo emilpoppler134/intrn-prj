@@ -69,7 +69,11 @@ const Routes = () => {
           element: <ProtectedSubscriptionRoute />,
           children: [
             {
-              path: "/bots/:id",
+              path: "/bots/:bot",
+              element: <BotChat />,
+            },
+            {
+              path: "/bots/:bot/:chat",
               element: <BotChat />,
             },
             {

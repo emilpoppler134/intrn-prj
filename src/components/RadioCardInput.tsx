@@ -23,7 +23,10 @@ const RadioCardInput = <T extends FieldValues>({
           {options.map((item) => (
             <div
               key={item.name}
-              onClick={() => onChange(item._id)}
+              onClick={() => {
+                onChange(item._id);
+                form.trigger(name);
+              }}
               className="relative flex cursor-pointer rounded-lg bg-white border border-gray-300 p-4 shadow-sm"
             >
               <div className="flex flex-1">

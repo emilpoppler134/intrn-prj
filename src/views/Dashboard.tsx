@@ -137,7 +137,7 @@ export default function Dashboard() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="mx-auto max-w-2xl pt-6">
+      <div className="mx-auto max-w-5xl px-6 lg:px-0 mt-6">
         <BotList
           bots={data}
           hasSubscription={user.subscription.status === null}

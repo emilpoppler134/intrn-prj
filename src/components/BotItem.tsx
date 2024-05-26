@@ -1,4 +1,8 @@
-import { UserIcon } from "@heroicons/react/24/solid";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  Cog6ToothIcon,
+  UserIcon,
+} from "@heroicons/react/24/solid";
 import classNames from "classnames";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -11,42 +15,57 @@ type BotItemProps = {
 
 const BotItem: React.FC<BotItemProps> = ({ bot, disabled = false }) => {
   return (
-    <div
-      className={classNames(
-        { "pointer-events-none": disabled },
-        "flex flex-col",
-      )}
-    >
-      <Link to={`/bots/${bot.id}`} className="group">
-        <div className="mb-1">
-          <span className="text-base text-gray-700">{bot.name}</span>
+    <>
+      <li
+        className={classNames(
+          { "pointer-events-none": disabled },
+          "col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow",
+        )}
+      >
+        <div className="flex flex-1 flex-col p-8">
+          <div className="mx-auto h-32 w-32 flex-shrink-0 rounded-full">
+            {bot.photo === null ? (
+              <UserIcon
+                className="w-full h-full fill-gray-700"
+                aria-hidden="true"
+              />
+            ) : (
+              <img src={bot.photo} alt="" className="w-full h-full" />
+            )}
+          </div>
+
+          <h3 className="mt-6 text-sm font-medium text-gray-900">{bot.name}</h3>
         </div>
-        <div className="flex flex-col">
-          <div className="relative pb-[100%] outline outline-2 outline-gray-300">
-            <div className="absolute-center w-full h-full p-4">
-              {bot.photo === null ? (
-                <UserIcon
-                  className="w-full h-full fill-gray-700"
+        <div>
+          <div className="-mt-px flex divide-x divide-gray-200">
+            <div className="flex w-0 flex-1">
+              <Link
+                to={`/bots/${bot.id}/config`}
+                className="relative -mr-px inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-bl-lg border border-transparent py-4 text-sm font-semibold text-gray-900"
+              >
+                <Cog6ToothIcon
+                  className="h-5 w-5 text-gray-400"
                   aria-hidden="true"
                 />
-              ) : (
-                <img src={bot.photo} alt="" className="w-full h-full" />
-              )}
+                Config
+              </Link>
+            </div>
+            <div className="-ml-px flex w-0 flex-1">
+              <Link
+                to={`/bots/${bot.id}`}
+                className="relative inline-flex w-0 flex-1 items-center justify-center gap-x-3 rounded-br-lg border border-transparent py-4 text-sm font-semibold text-gray-900"
+              >
+                <ChatBubbleBottomCenterTextIcon
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+                Chat
+              </Link>
             </div>
           </div>
-          <div className="mt-2">
-            <span className="text-base font-medium text-primary-600 group-hover:underline">
-              Chat
-            </span>
-          </div>
         </div>
-      </Link>
-      <Link to={`/bots/${bot.id}/config`}>
-        <span className="text-base font-medium text-primary-600 hover:underline">
-          Config
-        </span>
-      </Link>
-    </div>
+      </li>
+    </>
   );
 };
 

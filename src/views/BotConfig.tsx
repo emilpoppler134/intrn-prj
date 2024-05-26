@@ -243,7 +243,7 @@ export default function BotConfig() {
 
   return (
     <Layout breadcrumb={breadcrumb}>
-      <div className="w-full max-w-5xl mx-auto mb-12 rounded-b-lg bg-white p-10 ring-1 ring-inset ring-gray-900/5">
+      <div className="w-full max-w-5xl mx-auto mb-12 rounded-b-lg bg-white p-6 lg:p-10 ring-1 ring-inset ring-gray-900/5">
         <Form onSubmit={form.handleSubmit(handleUpdate)}>
           <div className="flex justify-between items-center pb-6 border-b border-gray-900/10">
             <div className="hover:underline">
@@ -388,7 +388,7 @@ export default function BotConfig() {
                 Choose how the bot will behave.
               </span>
 
-              <div className="px-4 py-6 flex flex-col sm:px-0">
+              <div className="py-6 flex flex-col">
                 <div className="mt-2">
                   <RadioCardInput
                     form={form}
@@ -402,7 +402,7 @@ export default function BotConfig() {
                 (item) => item._id === form.getValues("configuration"),
               )?.name === "custom" && (
                 <div>
-                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                  <div className="py-6 flex flex-col">
                     <span className="text-sm font-medium leading-6 text-gray-900">
                       Max Tokens
                     </span>
@@ -418,7 +418,7 @@ export default function BotConfig() {
                     </div>
                   </div>
 
-                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                  <div className="py-6 flex flex-col">
                     <span className="text-sm font-medium leading-6 text-gray-900">
                       Temperature
                     </span>
@@ -434,7 +434,7 @@ export default function BotConfig() {
                     </div>
                   </div>
 
-                  <div className="px-4 py-6 flex flex-col sm:px-0">
+                  <div className="py-6 flex flex-col">
                     <span className="text-sm font-medium leading-6 text-gray-900">
                       Top P
                     </span>
@@ -452,7 +452,7 @@ export default function BotConfig() {
                 </div>
               )}
 
-              <div className="px-4 py-6 flex flex-col sm:px-0">
+              <div className="py-6 flex flex-col">
                 <span className="text-sm font-medium leading-6 text-gray-900">
                   Llama model
                 </span>
@@ -479,7 +479,7 @@ export default function BotConfig() {
                 Add documents to train the bot.
               </span>
 
-              <div className="px-4 py-6 flex flex-col sm:px-0">
+              <div className="py-6 flex flex-col">
                 <span className="text-sm font-medium leading-6 text-gray-900">
                   Attachments
                 </span>
@@ -494,7 +494,7 @@ export default function BotConfig() {
             </div>
           </div>
 
-          <div className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <div className="py-3 sm:flex sm:flex-row-reverse sm:px-6">
             <div className="inline-flex w-full sm:ml-3 sm:w-auto">
               <SubmitButton
                 title="Save"

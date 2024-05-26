@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCompletion } from "ai/react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,14 +11,14 @@ import Metrics from "../components/Metrics";
 import QueuedSpinner from "../components/QueuedSpinner";
 import TextField from "../components/TextField";
 import Warnings from "../components/Warnings";
+import ChatLayout from "../components/layouts/ChatLayout";
 import ErrorLayout from "../components/layouts/ErrorLayout";
 import Layout from "../components/layouts/Layout";
 import { API_ADDRESS } from "../config";
+import { useChat } from "../hooks/useChat";
 import { ErrorWarning, useWarnings } from "../hooks/useWarnings";
 import { useAuth } from "../provider/authProvider";
-import { Bot, PromptItem } from "../types/Bot";
-import { Breadcrumb } from "../types/Breadcrumb";
-import { Model } from "../types/Model";
+import { PromptItem } from "../types/Bot";
 import { callAPI } from "../utils/apiService";
 import { Llama3Template, LlamaTemplate } from "../utils/prompt_template";
 import { countTokens } from "../utils/tokenizer";
@@ -28,7 +28,6 @@ const schema = yup.object().shape({
 });
 
 type FormFields = yup.InferType<typeof schema>;
-type QueryResponse = { bot: Bot; models: Array<Model> };
 
 enum MetricActionType {
   START,
@@ -54,6 +53,10 @@ type MessageItem = {
 type ChatItem = {
   role: string;
   content: string;
+};
+
+type CreateChatResponse = {
+  id: string;
 };
 
 const llamaTemplate = LlamaTemplate();
@@ -105,19 +108,16 @@ const metricsReducer = (
 };
 
 export default function BotChat() {
-  const { id } = useParams();
+  const params = useParams();
+  const { data, isLoading, error, changeChat } = useChat();
   const { token } = useAuth();
+  const queryClient = useQueryClient();
 
   const form = useForm<FormFields>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     criteriaMode: "all",
     resolver: yupResolver(schema),
-  });
-
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["botChat"],
-    queryFn: () => callAPI<QueryResponse>("/bots/find", { id }),
   });
 
   const MAX_TOKENS = 8192;
@@ -132,25 +132,75 @@ export default function BotChat() {
     completedAt: null,
   });
 
+  const { complete, stop, completion, setCompletion, setInput } = useCompletion(
+    {
+      api: `${API_ADDRESS}/bots/${params.bot}/${params.chat}/chat`,
+      headers: { Authorization: "Bearer " + token },
+      onError: (error: Error) => {
+        pushWarning(new ErrorWarning(error.message));
+      },
+      onResponse: () => {
+        setStarting(false);
+        clearWarnings();
+        dispatch({ type: MetricActionType.FIRST_MESSAGE });
+      },
+      onFinish: () => {
+        dispatch({ type: MetricActionType.COMPLETE });
+      },
+    },
+  );
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      callAPI<CreateChatResponse>(`/bots/${params.bot}/chats/create`),
+    onSuccess: (response: CreateChatResponse) => {
+      queryClient
+        .invalidateQueries({ queryKey: ["chats"] })
+        .then(() => onChangeChat(response.id));
+    },
+    onError: (err: Error) => {
+      pushWarning(new ErrorWarning(err.message));
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (
+      { id }: { id: string }, // TODO
+    ) => callAPI(`/bots/${params.bot}/chats/remove`, { id }),
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ["chats"] })
+        .then(() => onChangeChat("")); // TODO
+    },
+    onError: (err: Error) => {
+      pushWarning(new ErrorWarning(err.message));
+    },
+  });
+
   useEffect(() => {
     setInput(form.getValues("prompt"));
   }, [form.getValues("prompt")]);
 
-  const { complete, completion, setInput } = useCompletion({
-    api: `${API_ADDRESS}/bots/${id}/chat`,
-    headers: { Authorization: "Bearer " + token },
-    onError: (error: Error) => {
-      pushWarning(new ErrorWarning(error.message));
-    },
-    onResponse: () => {
-      setStarting(false);
-      clearWarnings();
-      dispatch({ type: MetricActionType.FIRST_MESSAGE });
-    },
-    onFinish: () => {
-      dispatch({ type: MetricActionType.COMPLETE });
-    },
-  });
+  useEffect(() => {
+    if (
+      (messages?.length > 0 || completion?.length > 0) &&
+      bottomRef &&
+      bottomRef.current
+    ) {
+      bottomRef.current.scrollIntoView();
+    }
+  }, [messages, completion]);
+
+  useEffect(() => {
+    if (data === undefined) return;
+
+    setMessages(
+      data.chat.messages.map((message) => ({
+        text: message.message,
+        isUser: message.sender === "user",
+      })),
+    );
+  }, [data, params.chat]);
 
   const handleSubmit = async ({ prompt: userMessage }: FormFields) => {
     if (data === undefined) return;
@@ -174,8 +224,8 @@ export default function BotChat() {
 
     // Generate initial prompt and calculate tokens
     let prompt = `${generatePrompt(
-      data.bot.model.name.includes("Llama 3") ? llama3Template : llamaTemplate,
-      convertPromptsToString(data.bot.prompts, data.bot.language.name),
+      bot.model.name.includes("Llama 3") ? llama3Template : llamaTemplate,
+      convertPromptsToString(bot.prompts, bot.language.name),
       messageHistory,
     )}\n`;
 
@@ -195,60 +245,71 @@ export default function BotChat() {
       // Recreate the prompt
       prompt = `${SNIP}\n${generatePrompt(
         llamaTemplate,
-        convertPromptsToString(data.bot.prompts, data.bot.language.name),
+        convertPromptsToString(bot.prompts, bot.language.name),
         messageHistory,
       )}\n`;
     }
 
     setMessages(messageHistory);
     dispatch({ type: MetricActionType.START });
-    complete(prompt);
+    complete(prompt, { body: { userMessage } });
   };
 
-  useEffect(() => {
-    if (
-      (messages?.length > 0 || completion?.length > 0) &&
-      bottomRef &&
-      bottomRef.current
-    ) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, completion]);
+  const handleCreateChat = () => {
+    clearWarnings();
+    createMutation.mutate();
+  };
+
+  const handleRemoveChat = (id: string) => {
+    clearWarnings();
+    removeMutation.mutate({ id });
+  };
+
+  const onChangeChat = (to: string) => {
+    changeChat(to, () => setCompletion(""));
+  };
 
   if (error !== null) return <ErrorLayout error={error} />;
   if (isLoading || data === undefined) return <Loading />;
 
-  const bot = data.bot;
-  const breadcrumb: Breadcrumb = [{ title: bot.name }, { title: "Chat" }];
+  const bot = data.chat.bot;
 
   return (
-    <Layout breadcrumb={breadcrumb}>
-      <div className="container max-w-3xl mx-auto pt-6">
-        <div className="pb-24">
-          {messages.map((message, index) => (
+    <Layout breadcrumb={null}>
+      <ChatLayout
+        data={data}
+        onNavigate={onChangeChat}
+        onCreate={handleCreateChat}
+        onRemove={handleRemoveChat}
+      >
+        <div className="flex-1 overflow-y-auto py-8">
+          <div className="container max-w-3xl mx-auto space-y-10">
+            {messages.map((message, index) => (
+              <Message
+                key={`message-${index}`}
+                message={message.text}
+                isUser={message.isUser}
+                botName={bot.name}
+                botPhoto={bot.photo}
+              />
+            ))}
+
             <Message
-              key={`message-${index}`}
-              message={message.text}
-              isUser={message.isUser}
+              key="completion"
+              message={completion}
+              isUser={false}
               botName={bot.name}
               botPhoto={bot.photo}
             />
-          ))}
 
-          <Message
-            message={completion}
-            isUser={false}
-            botName={bot.name}
-            botPhoto={bot.photo}
-          />
-
-          {starting && <QueuedSpinner />}
+            {starting && <QueuedSpinner />}
+          </div>
 
           <div ref={bottomRef} />
         </div>
 
-        <div className="z-10 fixed bottom-0 left-0 right-0 bg-slate-100 border-t-2">
-          <div className="container max-w-2xl mx-auto px-5 py-7">
+        <div className="bg-slate-100 border-t-2">
+          <div className="container max-w-3xl mx-auto py-7 px-5 lg:px-3">
             <Metrics
               startedAt={metrics.startedAt}
               firstMessageAt={metrics.firstMessageAt}
@@ -268,7 +329,7 @@ export default function BotChat() {
             </div>
           </div>
         </div>
-      </div>
+      </ChatLayout>
 
       <Warnings list={warnings} onClose={(item) => removeWarning(item)} />
     </Layout>

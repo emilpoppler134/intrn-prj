@@ -67,7 +67,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
             <input
               type="file"
               className="appearance-none opacity-0 absolute top-0 left-0 bottom-0 right-0 w-full h-full"
-              accept="text/plain, application/json"
+              accept=".jsonl"
               onChange={handleUpload}
             />
           </div>
@@ -86,7 +86,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
             <input
               type="file"
               className="appearance-none opacity-0 absolute top-0 left-0 bottom-0 right-0 w-full h-full"
-              accept="text/plain, application/json"
+              accept=".jsonl"
               onChange={handleUpload}
             />
           </div>

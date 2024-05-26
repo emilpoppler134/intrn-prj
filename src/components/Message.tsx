@@ -22,7 +22,7 @@ const Message: React.FC<MessageProps> = ({
   }
 
   return (
-    <div className={`flex gap-x-4 rounded-md py-5 px-5 mb-12`}>
+    <div className={`flex gap-x-4 rounded-md py-5 px-5 lg:px-3`}>
       <div className="flex-shrink-0">
         {isUser || botPhoto === null ? (
           <UserCircleIcon
